@@ -3,7 +3,7 @@
 train_dataset:
   lm:
     split: train
-    datadir: /datasets/openwebtext_saved
+    datadir: /localdisk/openwebtext_saved
     tokenizer_name: gpt2
     seed: 17
     shuffle: false
@@ -12,7 +12,7 @@ train_dataset:
 val_dataset:
   lm:
     split: validation
-    datadir: /datasets/openwebtext_saved
+    datadir: /localdisk/openwebtext_saved
     tokenizer_name: gpt2
     seed: 17
     shuffle: false
