@@ -77,9 +77,7 @@ class Primer(Algorithm):
 
         if event == Event.INIT:
             assert state.model is not None
-
             apply_primer(state.model)
-            import ipdb; ipdb.set_trace()
 
 
 def lazy_import(name: Union[str, None]) -> Any[Callable, ModuleType, None]:
