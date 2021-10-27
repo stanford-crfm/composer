@@ -124,9 +124,9 @@ class TrainerHparams(hp.Hparams):
         template_default=10,
     )
 
-    max_steps: int = hp.optional(
+    max_steps: int = hp.required(
         doc="Training time in steps, only supported for single-epoch training workloads. Set max_steps=-1 to ignore.",
-        default=-1,
+        template_default=-1,
     )
 
     total_batch_size: int = hp.required(
