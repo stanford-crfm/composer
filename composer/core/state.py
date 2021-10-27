@@ -109,6 +109,7 @@ class State(Serializable):
 
     # stopping conditions
     max_epochs: int
+    max_steps: int = -1
 
     # precision
     # storing precision internally so strings can be passed into the constructor and setter
@@ -236,6 +237,8 @@ class State(Serializable):
     @property
     def steps_per_epoch(self) -> int:
         """int: The number of steps (batches) per epoch."""
+        if self.max_steps >= 0:
+            return self.max_steps
         if self.train_dataloader is None:
             raise RuntimeError("To determine the number of steps per epoch, state.train_dataloader must be set.")
         return len(self.train_dataloader)

@@ -19,7 +19,7 @@ from composer.utils import ensure_tuple
 log = logging.getLogger(__name__)
 
 
-def scale_scheduler(scheduler: Scheduler, ssr: float, orig_max_epochs: Optional[int] = None):
+def scale_scheduler(scheduler: Scheduler, ssr: float, orig_steps_per_epoch: int, orig_max_epochs: int):
     """Makes a learning rate schedule take a different number of epochs.
 
     See :class:`ScaleSchedule` for more information.
@@ -36,6 +36,9 @@ def scale_scheduler(scheduler: Scheduler, ssr: float, orig_max_epochs: Optional[
         ssr: the factor by which to scale the duration of the schedule. E.g., 0.5
             makes the schedule take half as many epochs and 2.0 makes it
             take twice as many epochs.
+        orig_steps_per_epoch: the number of training steps per epoch.
+            Used along with ``ssr`` to determine the new number of steps
+            ``scheduler`` should span, for single-epoch runs.
         orig_max_epochs: the current number of epochs spanned by ``scheduler``.
             Used along with ``ssr`` to determine the new number of epochs
             ``scheduler`` should span.
@@ -51,10 +54,14 @@ def scale_scheduler(scheduler: Scheduler, ssr: float, orig_max_epochs: Optional[
         assert orig_max_epochs is not None, "To scale Cosine decay, max_epochs must be provided."
 
         if hasattr(scheduler, 'interval') and scheduler.interval == "step":
-            orig_max_epochs *= scheduler.steps_per_epoch
+            orig_time = orig_max_epochs * orig_steps_per_epoch
+        elif hasattr(scheduler, 'interval') and scheduler.interval == "epoch":
+            orig_time = orig_max_epochs
+        else:
+            raise ValueError(f'Scale schedule does not know how to modify scheduler with interval={scheduler.interval}')
 
-        warmup = orig_max_epochs - scheduler.T_max
-        scheduler.T_max = int(orig_max_epochs * ssr - warmup)
+        warmup = orig_time - scheduler.T_max
+        scheduler.T_max = int(orig_time * ssr - warmup)
     elif isinstance(scheduler, CosineAnnealingWarmRestarts):
         scheduler.T_0 = int(scheduler.T_0 * ssr)  # TODO: account for warmups
     elif isinstance(scheduler, ExponentialLR):
@@ -124,7 +131,7 @@ class ScaleSchedule(Algorithm):
 
     def match(self, event: Event, state: State) -> bool:
         """Run on Event.TRAINING_START
-        
+
         Args:
             event (:class:`Event`): The current event.
             state (:class:`State`): The current state.
@@ -146,21 +153,33 @@ class ScaleSchedule(Algorithm):
         assert state.schedulers is not None
 
         orig_max_epochs = state.max_epochs
-        new_max_epochs = int(state.max_epochs * self.hparams.ratio)
-        log.info(f'max_epochs changed from {state.max_epochs} to {new_max_epochs}')
-        state.max_epochs = new_max_epochs
-        if state.max_epochs == 0:
-            raise ValueError('Scale schedule has reduced the max_epochs to 0. Set a higher ratio or more epochs.')
+        orig_steps_per_epoch = state.steps_per_epoch
 
+        # Edit schedulers
         if hasattr(state.schedulers, 'schedulers'):
             schedulers = state.schedulers.schedulers
         else:
             schedulers = ensure_tuple(state.schedulers)
+        for scheduler in schedulers:
+            scale_scheduler(scheduler, self.hparams.ratio, orig_steps_per_epoch, orig_max_epochs)
 
-        if self.hparams.method == 'epoch':
-            for scheduler in schedulers:
-                scale_scheduler(scheduler, self.hparams.ratio, orig_max_epochs)
-        elif self.hparams.method == 'samples':
-            raise NotImplementedError('Scale schedule algorithm with samples method not supported yet.')
+        # Edit trainer duration
+        if self.hparams.method == "epoch":
+            # Edit max_epochs
+            new_max_epochs = int(state.max_epochs * self.hparams.ratio)
+            log.info(f'max_epochs changed from {state.max_epochs} to {new_max_epochs}')
+            state.max_epochs = new_max_epochs
+            if state.max_epochs == 0:
+                raise ValueError('Scale schedule has reduced the max_epochs to 0. Set a higher ratio or more epochs.')
+        elif self.hparams.method == "samples":
+            # Edit max_steps
+            assert state.max_epochs == 1, "Scale schedule by 'samples' is only possible if state.max_epochs == 1."
+            new_max_steps = int(orig_steps_per_epoch * self.hparams.ratio)
+            log.info(f'max_steps changed from {state.max_steps} to {new_max_steps}')
+            state.max_steps = new_max_steps
+            if state.max_steps == 0:
+                raise ValueError('Scale schedule has reduced the max_steps to 0. Set a higher ratio or more epochs.')
+        else:
+            raise ValueError(f'Scale schedule does not know how to scale by method={self.hparams.method}.')
 
         self.activated = True

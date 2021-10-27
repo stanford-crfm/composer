@@ -120,8 +120,13 @@ class TrainerHparams(hp.Hparams):
     loggers: List[BaseLoggerBackendHparams] = hp.required(doc="loggers to use")
 
     max_epochs: int = hp.required(
-        doc="training time in epochs and/or batches (e.g., 90ep5ba)",
+        doc="training time in epochs",
         template_default=10,
+    )
+
+    max_steps: int = hp.optional(
+        doc="Training time in steps, only supported for single-epoch training workloads. Set max_steps=-1 to ignore.",
+        default=-1,
     )
 
     total_batch_size: int = hp.required(
@@ -192,6 +197,11 @@ class TrainerHparams(hp.Hparams):
                 f"eval batch size ({self.eval_batch_size}) not divisible by the number of proccesses per node ({num_procs}) "
                 f"times the number of nodes ({self.ddp.num_nodes}")
 
+        if self.max_steps != -1 and self.max_epochs != 1:
+            raise ValueError(
+                f"attempted to set max_steps={self.max_steps} and max_epochs={self.max_epochs}, but max steps is only supported for single-epoch runs."
+            )
+
     def initialize_object(self) -> Trainer:
         from composer.trainer.trainer import Trainer
         return Trainer.create_from_hparams(hparams=self)
@@ -201,7 +211,7 @@ class TrainerHparams(hp.Hparams):
 
         Args:
             datadir (str): The datadir
-        
+
         Raises
             AttributeError: Raised if either :attr:`train_dataset` or :attr:`val_dataset` do not
             have a ``datadir`` property.

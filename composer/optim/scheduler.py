@@ -171,7 +171,6 @@ class SchedulerHparams(hp.Hparams, ABC):
         kwargs = {k: v for k, v in asdict(self).items() if k not in ['interval']}
         obj = self.scheduler_object(optimizer, **kwargs)
         obj.interval = self.interval  # type: ignore
-        obj.steps_per_epoch = steps_per_epoch  # type: ignore
         return obj, self.interval
 
 

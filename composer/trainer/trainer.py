@@ -121,6 +121,7 @@ class Trainer:
             train_dataloader_spec: DataloaderSpec,
             eval_dataloader_spec: DataloaderSpec,
             max_epochs: int,
+            max_steps: int,
             train_batch_size: int,
             eval_batch_size: int,
             algorithms: Optional[List[Algorithm]] = None,
@@ -201,6 +202,7 @@ class Trainer:
         )
 
         self.state = State(max_epochs=max_epochs,
+                           max_steps=max_steps,
                            train_batch_size=train_batch_size,
                            eval_batch_size=eval_batch_size,
                            algorithms=algorithms,
@@ -244,7 +246,6 @@ class Trainer:
         self.engine.run_event(Event.INIT)
 
         assert isinstance(self.train_dl_spec.dataset, collections.abc.Sized)
-        steps_per_epoch = len(self.train_dl_spec.dataset) // train_batch_size
         # Need to use hparams here because optimizer and schedulers need to be created after Event.INIT
         if not optimizer_hparams:
             optimizer_hparams = DecoupledSGDWHparams(lr=0.1, momentum=0.9, weight_decay=1.0e-4)
@@ -253,7 +254,7 @@ class Trainer:
         if not isinstance(schedulers_hparams, list):
             schedulers_hparams = [schedulers_hparams]
         optimizer = optimizer_hparams.initialize_object(param_group=self.state.model.parameters())
-        schedulers = [x.initialize_object(optimizer, steps_per_epoch) for x in ensure_warmup_last(schedulers_hparams)]
+        schedulers = [x.initialize_object(optimizer, self.state.steps_per_epoch) for x in ensure_warmup_last(schedulers_hparams)]
         self.state.optimizers = optimizer
         self.state.schedulers = ComposedScheduler(schedulers=schedulers)
 
@@ -311,6 +312,7 @@ class Trainer:
             train_dataloader_spec=train_dl_spec,
             eval_dataloader_spec=eval_dl_spec,
             max_epochs=hparams.max_epochs,
+            max_steps=hparams.max_steps,
             train_batch_size=hparams.total_batch_size,
             eval_batch_size=hparams.eval_batch_size,
             algorithms=algorithms,
@@ -544,6 +546,9 @@ class Trainer:
 
                 assert state.train_dataloader, "Train Dataloader must be set"
                 for batch_idx, state.batch in enumerate(state.train_dataloader):
+                    if self.state.max_steps >= 0 and self.state.step >= self.state.max_steps:
+                        log.info(f'Reached max_steps={self.state.max_steps}')
+                        raise BreakEpochException
 
                     # if resuming, skip dataloader forward to the minibatch index
                     if batch_idx < self.state.batch_idx:
