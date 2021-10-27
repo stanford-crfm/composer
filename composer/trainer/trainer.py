@@ -246,6 +246,14 @@ class Trainer:
         self.engine.run_event(Event.INIT)
 
         assert isinstance(self.train_dl_spec.dataset, collections.abc.Sized)
+
+        # Manually compute steps_per_epoch (train dataloader is not created until train_loop starts)
+        if self.state.max_steps >= 0:
+            assert self.state.max_epochs == 1, "Trainer only supports max_steps when max_epochs==1."
+            steps_per_epoch = self.state.max_steps
+        else:
+            steps_per_epoch = len(self.train_dl_spec.dataset) // train_batch_size
+
         # Need to use hparams here because optimizer and schedulers need to be created after Event.INIT
         if not optimizer_hparams:
             optimizer_hparams = DecoupledSGDWHparams(lr=0.1, momentum=0.9, weight_decay=1.0e-4)
@@ -254,7 +262,7 @@ class Trainer:
         if not isinstance(schedulers_hparams, list):
             schedulers_hparams = [schedulers_hparams]
         optimizer = optimizer_hparams.initialize_object(param_group=self.state.model.parameters())
-        schedulers = [x.initialize_object(optimizer, self.state.steps_per_epoch) for x in ensure_warmup_last(schedulers_hparams)]
+        schedulers = [x.initialize_object(optimizer, steps_per_epoch) for x in ensure_warmup_last(schedulers_hparams)]
         self.state.optimizers = optimizer
         self.state.schedulers = ComposedScheduler(schedulers=schedulers)
 
