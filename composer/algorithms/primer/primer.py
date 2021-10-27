@@ -8,7 +8,7 @@ import math
 from dataclasses import asdict, dataclass
 from operator import attrgetter
 from types import MethodType, ModuleType
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 import yahp as hp
@@ -23,48 +23,86 @@ log = logging.getLogger(__name__)
 @dataclass
 class PrimerHparams(AlgorithmHparams):
     """See :class:`Primer`"""
+    use_squared_relu: bool = hp.required("Whether to use squared ReLUs as the activation function or not.")
+    use_dconv: bool = hp.required("Whether to add depth-wise convolutions after each multi-headed projection.")
 
     def initialize_object(self) -> "Primer":
         return Primer(**asdict(self))
 
 
-def apply_primer(model: torch.nn.Module) -> None:
-    """
-    Removes position embeddings and replaces the attention function and attention mask
-    according to `AliBi <https://arxiv.org/abs/2108.12409>`_.
+def apply_primer(model: torch.nn.Module,
+                 use_squared_relu: bool,
+                 use_dconv: bool,
+                 dconv_fns: Optional[List[torch.nn.Module]] = None) -> None:
+    if use_squared_relu:
+        print("Squaring the ReLU!")
+        for idx in range(len(model.module.transformer.h)):
+            model.module.transformer.h[idx].mlp.act = lambda x: relu(x)**2
+    else:
+        print("Not squaring the ReLU!")
 
-    Args:
-        model: model to transform
-        heads_per_layer: number of attention heads per layer
-        max_sequence_length: maximum sequence length that the
-            model will be able to accept without returning an error
-        position_embedding_attribute: attribute for position
-            embeddings. For example in HuggingFace's GPT2, the
-            position embeddings are "transformer.wpe".
-        attention_module: module/class that will have its
-            self-attention function replaced. For example, in
-            HuggingFace's GPT, the self-attention module is
-            transformers.models.gpt2.modeling_gpt2.GPT2Attention.
-        attr_to_replace: attribute that self-attention function will
-            replace. For example, in HuggingFace's GPT2, the
-            self-attention function is "_attn".
-        alibi_attention: new self-attention function in which
-            ALiBi is implemented. Used to replace
-            "{attention_module}.{attr_to_replace}".
-        mask_replacement_function: function to replace model's
-            attention mask. This is sometimes necessary for evaluating
-            on sequence lengths longer than the model was initialized to
-            accommodate.
-    """
+    if use_dconv:
+        print("Using the DConv!")
+        # model_dim is the output of the embedding layer
+        model_dim = model.module.transformer.wte.embedding_dim
+        n_heads = model.config.n_head
+        assert (model_dim % n_heads) == 0
+        dim_per_head = model_dim // n_heads
+        kernel_size = 3
 
-    for idx in range(len(model.module.transformer.h)):
-        model.module.transformer.h[idx].mlp.act = lambda x: relu(x)**2
+        model.module.q_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
+        model.module.k_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
+        model.module.v_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
+
+        orig_attn_fn = model.module.transformer.h[0].attn._attn
+
+        def dconv_attn(query, key, value, attention_mask=None, head_mask=None):
+            # query shape is (bs x nhead x seq_len x head_dim)
+            # the dconv expects (bs x seq_len x nhead x head_dim)
+            query = model.module.q_dconv(query.transpose(1, 2)).transpose(1, 2)
+            key = model.module.k_dconv(query.transpose(1, 2)).transpose(1, 2)
+            value = model.module.v_dconv(query.transpose(1, 2)).transpose(1, 2)
+            attn = orig_attn_fn(query, key, value, attention_mask=attention_mask, head_mask=head_mask)
+            return attn
+
+        for idx in range(len(model.module.transformer.h)):
+            model.module.transformer.h[idx].attn._attn = dconv_attn
+    else:
+        print("Not using the DConv!")
+
+
+def shift(x: torch.Tensor, amt: int, dim: int = -1):
+    return torch.nn.functional.pad(x, (*((0, 0) * (-dim - 1)), amt, -amt), value=0.0)
+
+
+# adapted from GPT Neo-X
+class CausalDepthwiseConv(torch.nn.Module):
+
+    def __init__(self, dim_per_head, n_heads, kernel_size=3):
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.weight = torch.nn.Parameter(torch.empty(size=(kernel_size, n_heads, dim_per_head)))
+        # weird init from https://github.com/google-research/google-research/blob/3e1a06764ff52e33e3523d82ae836441df701c5d/primer/t5_models.py#L35
+        torch.nn.init.constant_(self.weight, 0.5 / kernel_size)
+        torch.nn.init.constant_(self.weight[0], 0.5)
+
+    def forward(self, x, seq_dim=1):
+        # x should be [b, s, np, hp]
+        ret = x * self.weight[0]
+        for shift_distance in range(1, self.kernel_size):
+            x = shift(x, 1, dim=seq_dim)
+            ret += x * self.weight[shift_distance]
+        return ret
 
 
 class Primer(Algorithm):
-    def __init__(self) -> None:
 
-        self.hparams = PrimerHparams()
+    def __init__(self, use_squared_relu: bool, use_dconv: bool) -> None:
+        self.q_dconv = None
+        self.k_dconv = None
+        self.v_dconv = None
+        self.use_squared_relu = use_squared_relu
+        self.use_dconv = use_dconv
 
     def match(self, event: Event, state: State) -> bool:
         """ Runs on Event.INIT
@@ -77,7 +115,7 @@ class Primer(Algorithm):
 
         if event == Event.INIT:
             assert state.model is not None
-            apply_primer(state.model)
+            apply_primer(state.model, use_squared_relu=self.use_squared_relu, use_dconv=self.use_dconv)
 
 
 def lazy_import(name: Union[str, None]) -> Any[Callable, ModuleType, None]:
