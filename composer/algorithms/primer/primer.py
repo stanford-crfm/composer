@@ -30,6 +30,25 @@ class PrimerHparams(AlgorithmHparams):
         return Primer(**asdict(self))
 
 
+def make_layerwise_convs(model, idx, dim_per_head, n_heads, kernel_size):
+    model.module.transformer.h[idx].q_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
+    model.module.transformer.h[idx].k_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
+    model.module.transformer.h[idx].v_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
+
+    orig_attn_fn = model.module.transformer.h[idx].attn._attn
+
+    def dconv_attn(query, key, value, attention_mask=None, head_mask=None):
+        # query shape is (bs x nhead x seq_len x head_dim)
+        # the dconv expects (bs x seq_len x nhead x head_dim)
+        query = model.module.transformer.h[idx].q_dconv(query.transpose(1, 2)).transpose(1, 2)
+        key = model.module.transformer.h[idx].k_dconv(key.transpose(1, 2)).transpose(1, 2)
+        value = model.module.transformer.h[idx].v_dconv(value.transpose(1, 2)).transpose(1, 2)
+        attn = orig_attn_fn(query, key, value, attention_mask=attention_mask, head_mask=head_mask)
+        return attn
+
+    model.module.transformer.h[idx].attn._attn = dconv_attn
+
+
 def apply_primer(model: torch.nn.Module,
                  use_squared_relu: bool,
                  use_dconv: bool,
@@ -50,23 +69,8 @@ def apply_primer(model: torch.nn.Module,
         dim_per_head = model_dim // n_heads
         kernel_size = 3
 
-        model.module.q_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
-        model.module.k_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
-        model.module.v_dconv = CausalDepthwiseConv(dim_per_head, n_heads, kernel_size=kernel_size)
-
-        orig_attn_fn = model.module.transformer.h[0].attn._attn
-
-        def dconv_attn(query, key, value, attention_mask=None, head_mask=None):
-            # query shape is (bs x nhead x seq_len x head_dim)
-            # the dconv expects (bs x seq_len x nhead x head_dim)
-            query = model.module.q_dconv(query.transpose(1, 2)).transpose(1, 2)
-            key = model.module.k_dconv(query.transpose(1, 2)).transpose(1, 2)
-            value = model.module.v_dconv(query.transpose(1, 2)).transpose(1, 2)
-            attn = orig_attn_fn(query, key, value, attention_mask=attention_mask, head_mask=head_mask)
-            return attn
-
         for idx in range(len(model.module.transformer.h)):
-            model.module.transformer.h[idx].attn._attn = dconv_attn
+            make_layerwise_convs(model, idx, dim_per_head=dim_per_head, n_heads=n_heads, kernel_size=kernel_size)
     else:
         print("Not using the DConv!")
 
@@ -98,9 +102,6 @@ class CausalDepthwiseConv(torch.nn.Module):
 class Primer(Algorithm):
 
     def __init__(self, use_squared_relu: bool, use_dconv: bool) -> None:
-        self.q_dconv = None
-        self.k_dconv = None
-        self.v_dconv = None
         self.use_squared_relu = use_squared_relu
         self.use_dconv = use_dconv
 
