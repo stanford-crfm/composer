@@ -76,7 +76,10 @@ def apply_primer(model: torch.nn.Module,
 
 
 def shift(x: torch.Tensor, amt: int, dim: int = -1):
-    return torch.nn.functional.pad(x, (*((0, 0) * (-dim - 1)), amt, -amt), value=0.0)
+    assert dim == 1
+    x = torch.roll(x, shifts=amt, dims=1)
+    x[:, :amt] = 0
+    return x
 
 
 # adapted from GPT Neo-X
