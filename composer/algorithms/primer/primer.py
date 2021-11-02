@@ -25,6 +25,7 @@ class PrimerHparams(AlgorithmHparams):
     """See :class:`Primer`"""
     use_squared_relu: bool = hp.required("Whether to use squared ReLUs as the activation function or not.")
     use_dconv: bool = hp.required("Whether to add depth-wise convolutions after each multi-headed projection.")
+    use_every_n_layers: int = hp.required("Add the depth-wise convolutions every N layers.")
 
     def initialize_object(self) -> "Primer":
         return Primer(**asdict(self))
@@ -52,7 +53,8 @@ def make_layerwise_convs(model, idx, dim_per_head, n_heads, kernel_size):
 def apply_primer(model: torch.nn.Module,
                  use_squared_relu: bool,
                  use_dconv: bool,
-                 dconv_fns: Optional[List[torch.nn.Module]] = None) -> None:
+                 dconv_fns: Optional[List[torch.nn.Module]] = None,
+                 use_every_n_layers: int = 1) -> None:
     if use_squared_relu:
         print("Squaring the ReLU!")
         for idx in range(len(model.module.transformer.h)):
@@ -70,7 +72,8 @@ def apply_primer(model: torch.nn.Module,
         kernel_size = 3
 
         for idx in range(len(model.module.transformer.h)):
-            make_layerwise_convs(model, idx, dim_per_head=dim_per_head, n_heads=n_heads, kernel_size=kernel_size)
+            if (idx % use_every_n_layers) == 0:
+                make_layerwise_convs(model, idx, dim_per_head=dim_per_head, n_heads=n_heads, kernel_size=kernel_size)
     else:
         print("Not using the DConv!")
 
@@ -96,17 +99,27 @@ class CausalDepthwiseConv(torch.nn.Module):
     def forward(self, x, seq_dim=1):
         # x should be [b, s, np, hp]
         ret = x * self.weight[0]
-        for shift_distance in range(1, self.kernel_size):
+        if self.kernel_size == 3:
+            shift_distance = 1
             x = shift(x, 1, dim=seq_dim)
             ret += x * self.weight[shift_distance]
+
+            shift_distance = 2
+            x = shift(x, 1, dim=seq_dim)
+            ret += x * self.weight[shift_distance]
+        else:
+            for shift_distance in range(1, self.kernel_size):
+                x = shift(x, 1, dim=seq_dim)
+                ret += x * self.weight[shift_distance]
         return ret
 
 
 class Primer(Algorithm):
 
-    def __init__(self, use_squared_relu: bool, use_dconv: bool) -> None:
+    def __init__(self, use_squared_relu: bool, use_dconv: bool, use_every_n_layers: int) -> None:
         self.use_squared_relu = use_squared_relu
         self.use_dconv = use_dconv
+        self.use_every_n_layers = use_every_n_layers
 
     def match(self, event: Event, state: State) -> bool:
         """ Runs on Event.INIT
@@ -119,7 +132,10 @@ class Primer(Algorithm):
 
         if event == Event.INIT:
             assert state.model is not None
-            apply_primer(state.model, use_squared_relu=self.use_squared_relu, use_dconv=self.use_dconv)
+            apply_primer(state.model,
+                         use_squared_relu=self.use_squared_relu,
+                         use_dconv=self.use_dconv,
+                         use_every_n_layers=self.use_every_n_layers)
 
 
 def lazy_import(name: Union[str, None]) -> Any[Callable, ModuleType, None]:
