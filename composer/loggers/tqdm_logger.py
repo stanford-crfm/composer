@@ -75,12 +75,12 @@ class TQDMLoggerBackend(RankZeroLoggerBackend):
 
     Example output::
 
-        Epoch 1: 100%|██████████| 64/64 [00:01<00:00, 53.17it/s, loss/train=2.3023]                                                                                 
-        Epoch 1 (val): 100%|██████████| 20/20 [00:00<00:00, 100.96it/s, accuracy/val=0.0995]  
+        Epoch 1: 100%|██████████| 64/64 [00:01<00:00, 53.17it/s, loss/train=2.3023]
+        Epoch 1 (val): 100%|██████████| 20/20 [00:00<00:00, 100.96it/s, accuracy/val=0.0995]
 
     .. note::
 
-        It is currently not possible to show additional metrics. 
+        It is currently not possible to show additional metrics.
         Custom metrics for the TQDM progress bar will be supported in a future version.
 
     Args:
@@ -124,7 +124,7 @@ class TQDMLoggerBackend(RankZeroLoggerBackend):
                                               val=False,
                                               keys_to_log=["loss/train"])
 
-    def after_backward(self, state: State, logger: Logger) -> None:
+    def batch_end(self, state: State, logger: Logger) -> None:
         del state, logger  # Unused
         assert self.pbar_train is not None
         self.pbar_train.update()
@@ -145,7 +145,7 @@ class TQDMLoggerBackend(RankZeroLoggerBackend):
                                             keys_to_log=["accuracy/val"])
         self.is_validating = True
 
-    def eval_after_forward(self, state: State, logger: Logger) -> None:
+    def eval_batch_end(self, state: State, logger: Logger) -> None:
         del state, logger  # Unused
         assert self.pbar_val is not None
         self.pbar_val.update()
