@@ -1,7 +1,7 @@
 # Copyright 2021 MosaicML. All Rights Reserved.
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import yahp as hp
 
@@ -56,6 +56,7 @@ class BERTForClassificationHparams(TransformerHparams):
 
 @dataclass
 class BERTHparams(TransformerHparams):
+    label_smoothing: Optional[float] = hp.optional(doc="Amount of label smoothing to apply", default=None)
 
     def initialize_object(self) -> "MosaicTransformer":
         try:
@@ -87,4 +88,5 @@ class BERTHparams(TransformerHparams):
             module=model,
             config=config,  #type: ignore (thirdparty)
             tokenizer_name=self.tokenizer_name,
+            label_smoothing=self.label_smoothing,
         )
