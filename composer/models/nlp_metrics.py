@@ -50,7 +50,7 @@ class MaskedAccuracy(Metric):
         return self.correct.float() / self.total
 
 
-class CrossEntropyLoss(Metric):
+class CrossEntropyMetric(Metric):
     """Computes cross entropy loss.
 
     Args:

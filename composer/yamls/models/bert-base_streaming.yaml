@@ -1,33 +1,33 @@
 train_dataset:
-  lm:
+  streaming_lm:
+    dataset_name: c4
+    dataset_config_name: en
     split: train
-    datadir:
-      - /mnt/gcp/datasets/wikipedia_saved_bert_128
-      - /mnt/gcp/datasets/bookcorpus_saved_bert_128
+    max_shards: -1
+    max_samples: 275184000 
+    max_seq_len: 128 
+    group_method: truncate # TODO: check that the code for this one is right
     tokenizer_name: bert-base-uncased
-    seed: 19
-    shuffle: true 
-    drop_last: true 
-    subsample_ratio: 1.0 
-    use_masked_lm: true
+    use_masked_lm: true # TODO: check that the code for this one is right 
     mlm_probability: 0.15
-    train_sequence_length: 128 
-    val_sequence_length: 128 
+    seed: 17
+    shuffle: true
+    drop_last: true
 val_dataset:
-  lm:
+  streaming_lm:
+    dataset_name: c4
+    dataset_config_name: en
     split: validation
-    datadir:
-      - /mnt/gcp/datasets/wikipedia_saved_bert_128
-      - /mnt/gcp/datasets/bookcorpus_saved_bert_128
-    tokenizer_name: bert-base-uncased
-    seed: 19
-    shuffle: true 
-    drop_last: true 
-    subsample_ratio: 0.02
-    use_masked_lm: true
+    max_shards: -1
+    max_samples: 32000 # there's a bug, this is currently per-device 
+    max_seq_len: 128 
+    group_method: truncate # TODO: check that the code for this one is right
+    tokenizer_name: bert-base-uncased 
+    use_masked_lm: true # TODO: check that the code for this one is right
     mlm_probability: 0.15
-    train_sequence_length: 128 
-    val_sequence_length: 128 
+    seed: 17
+    shuffle: false
+    drop_last: true
 model:
   bert:
     use_pretrained: false
@@ -55,13 +55,14 @@ schedulers:
       verbose: false
 loggers:
   - file:
-      log_level: batch
+      log_level: batch 
       filename: stdout
       buffer_size: 1
       flush_every_n_batches: 100
       every_n_batches: 100
       every_n_epochs: 1
-max_duration: 7ep  # Baseline is 256M samples, 7 epochs is ~280M samples
+max_duration: 1ep  # Baseline is 256M samples, 7 epochs is ~280M samples
+log_level: INFO 
 train_batch_size: 4000
 eval_batch_size: 2000
 seed: 19
@@ -70,7 +71,7 @@ device:
 dataloader:
   pin_memory: true
   persistent_workers: true
-  num_workers: 8
+  num_workers: 1
   timeout: 0
   prefetch_factor: 2
 grad_accum: 2

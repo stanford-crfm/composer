@@ -30,6 +30,81 @@ INTERVAL_MAP = {
 }
 
 
+def _parse_time_string(timestring: str) -> Tuple[float, int, int]:
+    """Parse timestring to (duration, epoch, batches).
+
+    Args:
+        timestring (str): String in the format 'XXdurYYepZZba'.
+
+    Returns:
+        tuple: (duration, epochs, batches)
+
+    Raises:
+        ValueError: The timestring is invalid
+
+    Examples:
+        >>> _parse_time_string('0.98dur32ep173ba')
+        (0.98, 32, 173)
+        >>> _parse_time_string('32ep173ba')
+        (0, 32, 173)
+        >>> _parse_time_string('12ep')
+        (0, 12, 0)
+        >>> _parse_time_string('1024ba')
+        (0, 0, 1024)
+    """
+
+    match = STR_REGEX.findall(timestring)
+    if len(match) != 1:
+        raise ValueError(f'Invalid timestring: {timestring}. Should be of format 0.98dur32ep15ba, or subsets thereof.')
+    match = match[0]
+
+    duration = 0 if 'dur' not in match else float(match[match.index('dur') - 1])
+    epochs = 0 if 'ep' not in match else int(match[match.index('ep') - 1])
+    batches = 0 if 'ba' not in match else int(match[match.index('ba') - 1])
+
+    return duration, epochs, batches
+
+
+def _convert_time(time: Time,
+                  steps_per_epoch: Optional[int] = None,
+                  max_epochs: Optional[int] = None,
+                  interval: str = 'epoch') -> int:
+    """Convert time to either batches or epochs (based on interval argument)."""
+    if isinstance(time, int):
+        return time
+    if steps_per_epoch is None:
+        raise ValueError('steps_per_epoch must be provided to parse time string.')
+
+    duration, epochs, batches = _parse_time_string(time)
+
+    if interval in ('batches', 'batch', 'steps', 'step'):
+        new_time = batches + epochs * steps_per_epoch
+
+        if duration > 0:
+            assert max_epochs is not None
+            total_duration = max_epochs * steps_per_epoch
+            new_time += (total_duration * duration)
+
+        new_time = int(round(new_time))
+        print(f'Converting {time}, {interval} to {new_time}')
+        return new_time
+    elif interval in ('epochs', 'epoch'):
+        if duration > 0:
+            assert max_epochs is not None
+            # convert the duration term into batches for ease of calculation
+            # round batches to the nearest term
+            batches += int(round(steps_per_epoch * max_epochs * duration))
+        epochs = epochs + batches // steps_per_epoch
+        batches = batches % steps_per_epoch
+        if batches != 0:
+            log.warning('Scheduler is stepping every epoch, but provided timestring '
+                        f'{time} had extra batches. Ignoring the extra batches.')
+        log.info(f'Converting {time}, {interval} to {epochs}')
+        return epochs
+    else:
+        raise ValueError('interval must be one of (batch, epoch)')
+
+
 @dataclass
 class SchedulerHparams(hp.Hparams, ABC):
 

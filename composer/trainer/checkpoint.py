@@ -9,6 +9,7 @@ import random
 import tarfile
 import tempfile
 import textwrap
+import time
 import urllib.parse
 import warnings
 from typing import TYPE_CHECKING, Any, Dict, Iterator, Optional, Tuple, cast
@@ -338,6 +339,8 @@ class CheckpointSaver:
         self.checkpoint_folder = os.path.join(run_directory.get_run_directory(), checkpoint_folder)
         os.makedirs(self.checkpoint_folder, mode=0o775, exist_ok=True)
         self.save_interval = checkpoint_interval
+        self.start_wct = time.time()
+        self.timestamp_checkpoints = True  # TODO: maybe move this into a hparam later on!
 
     def should_checkpoint(self, state: State, event: Event) -> bool:
         """Given the current state and event, determine whether a checkpoint needs to be created.
@@ -381,6 +384,11 @@ class CheckpointSaver:
             tag = f"it{state.step}"
         else:
             raise ValueError(f"Invalid checkpoint event: {self.save_event}")
+
+        if self.timestamp_checkpoints:
+            curr_wct = time.time() - self.start_wct
+            curr_wct = round(curr_wct)
+            tag = f"{tag}_{curr_wct}"
 
         with tempfile.TemporaryDirectory() as tmpdir:
             if is_module_deepspeed(state.model):
