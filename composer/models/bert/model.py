@@ -149,15 +149,14 @@ class BERTModel(MosaicTransformer):
         assert self.training is False, "For validation, model must be in eval mode"
 
         # temporary hack until eval on multiple datasets is finished
-        labels = batch.pop('labels')
         output = self.forward(batch)
+        labels = output['labels']
         output = output['logits']
 
         # if we are in the single class case, then remove the classes dimension
         if output.shape[1] == 1:
             output = output.squeeze(dim=1)
 
-        output['labels'] = labels
         return (output, labels)
 
     def metrics(self, train: bool = False) -> Metrics:
