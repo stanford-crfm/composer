@@ -61,11 +61,11 @@ def occumpy_mem(cuda_device):
 
 
 def apply_act_fn(model: torch.nn.Module, act_fn_name: str, use_gated: bool, use_rmsnorm: bool) -> None:
-    cuda_device = dist.get_global_rank()
-    occumpy_mem(cuda_device)
-    for _ in tqdm(range(60)):
-        time.sleep(1)
-    print('Finished initializing CUDA memory.')
+    # cuda_device = dist.get_global_rank()
+    # occumpy_mem(cuda_device)
+    # for _ in tqdm(range(60)):
+        # time.sleep(1)
+    # print('Finished initializing CUDA memory.')
 
     act_fns = {
         "squared_relu": lambda x: relu(x).square(),
