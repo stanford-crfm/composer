@@ -83,6 +83,8 @@ class BERTHparams(TransformerHparams):
         else:
             model = transformers.AutoModelForMaskedLM.from_config(config)  #type: ignore (thirdparty)
 
+        print(model)
+
         return BERTModel(
             module=model,
             config=config,  #type: ignore (thirdparty)

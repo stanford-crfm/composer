@@ -30,12 +30,13 @@ val_dataset:
     drop_last: true
 model:
   bert:
+    #pretrained_model_name: bert-base-uncased
     model_config:
       architectures:
         - BertForMaskedLM
       attention_probs_dropout_prob: 0.1
-      classifier_dropout: null  
       gradient_checkpointing: false
+      classifier_dropout: null
       hidden_act: gelu
       hidden_dropout_prob: 0.1
       hidden_size: 768
@@ -48,7 +49,6 @@ model:
       num_hidden_layers: 12
       pad_token_id: 0
       position_embedding_type: absolute
-      transformers_version: "4.6.0.dev0"
       type_vocab_size: 2
       use_cache: true
       vocab_size: 30522
@@ -94,7 +94,7 @@ dataloader:
   num_workers: 1
   timeout: 0
   prefetch_factor: 2
-grad_accum: 3
+grad_accum: 2
 precision: amp
 grad_clip_norm: None
 validate_every_n_batches: 1000
