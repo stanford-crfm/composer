@@ -18,6 +18,7 @@ from composer.utils import dist
 from composer.utils.data import NormalizationFn, pil_image_collate
 
 import math
+import sys
 import webdataset as wds
 
 # ImageNet normalization values from torchvision: https://pytorch.org/vision/stable/models.html
@@ -79,23 +80,27 @@ class ImagenetStreamingDatasetHparams(DatasetHparams, SyntheticHparamsMixin):
             cache = False
             cache_dir = f"./i1k_{split}_cache"
             cache_verbose =  True
-  
+            #########################################
             # TODO: read this info from S3 directly
             n_shards_map = {
                 "train": 1024,
                 "validation": 128,
             }
-            
+       
             size_map = {
                 "train": 1281024,
                 "validation": 49920,
             }
+            #########################################
             
             dataset_size = size_map[split]
             device_dataset_size = dataset_size // dist.get_world_size()
             n_shards = n_shards_map[split]
+            global_num_workers =  dist.get_world_size() * dataloader_hparams.num_workers
+            assert n_shards % global_num_workers == 0, f"{n_shards=} not divisible by {global_num_workers=}"
             shard_digits = math.ceil(math.log(n_shards, 10))
             zeros = "0"*shard_digits
+            
             urls = f"pipe: aws s3 cp s3://mosaicml-internal-dataset-i1k/i1k-{split}-{{{zeros}..{n_shards-1}}}.tar -"
 
             dataset = wds.WebDataset(
@@ -104,7 +109,7 @@ class ImagenetStreamingDatasetHparams(DatasetHparams, SyntheticHparamsMixin):
                 cache_verbose=cache_verbose,
             )
 
-            dataset = dataset.decode("pil").map_dict(jpg=transformation).to_tuple("jpg", "cls").with_length(device_dataset_size)
+            dataset = dataset.decode("pil").map_dict(jpg=transformation).to_tuple("jpg", "cls").with_epoch(device_dataset_size).with_length(device_dataset_size)
 
 
         return DataSpec(dataloader=dataloader_hparams.initialize_object(
