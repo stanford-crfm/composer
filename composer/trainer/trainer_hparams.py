@@ -77,6 +77,7 @@ dataset_registry = {
     "ade20k": datasets.ADE20kDatasetHparams,
     "brats": datasets.BratsDatasetHparams,
     "imagenet": datasets.ImagenetDatasetHparams,
+    "imagenet_streaming": datasets.ImagenetStreamingDatasetHparams,
     "cifar10": datasets.CIFAR10DatasetHparams,
     "mnist": datasets.MNISTDatasetHparams,
     "lm": datasets.LMDatasetHparams,

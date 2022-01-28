@@ -9,6 +9,7 @@ from composer.datasets.glue import GLUEHparams as GLUEHparams
 from composer.datasets.hparams import DatasetHparams as DatasetHparams
 from composer.datasets.hparams import SyntheticHparamsMixin as SyntheticHparamsMixin
 from composer.datasets.imagenet import ImagenetDatasetHparams as ImagenetDatasetHparams
+from composer.datasets.imagenet_streaming import ImagenetStreamingDatasetHparams as ImagenetStreamingDatasetHparams
 from composer.datasets.lm_datasets import LMDatasetHparams as LMDatasetHparams
 from composer.datasets.mnist import MNISTDatasetHparams as MNISTDatasetHparams
 from composer.datasets.synthetic import MemoryFormat as MemoryFormat
