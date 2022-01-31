@@ -13,6 +13,7 @@ from typing import Any, Callable, List, Optional, Union
 import torch
 import transformers
 import yahp as hp
+from apex.normalization.fused_layer_norm import FusedLayerNorm
 from torch.nn.functional import relu
 from tqdm import tqdm
 
@@ -31,6 +32,7 @@ class ActFnSearchHparams(AlgorithmHparams):
     act_fn_name: str = hp.required("The name of the activation function to use.")
     use_gated: bool = hp.required("Whether to use a GLU unit or a regular unit.")
     use_rmsnorm: bool = hp.required("Whether to use RMSNorm instead of LayerNorm.")
+    use_fln : bool = hp.required("Whether to use fused layernorms.")
 
     def initialize_object(self) -> "Primer":
         return ActFnSearch(**asdict(self))
@@ -60,11 +62,11 @@ def occumpy_mem(cuda_device):
     del x
 
 
-def apply_act_fn(model: torch.nn.Module, act_fn_name: str, use_gated: bool, use_rmsnorm: bool) -> None:
+def apply_act_fn(model: torch.nn.Module, act_fn_name: str, use_gated: bool, use_rmsnorm: bool, use_fln: bool) -> None:
     # cuda_device = dist.get_global_rank()
     # occumpy_mem(cuda_device)
     # for _ in tqdm(range(60)):
-        # time.sleep(1)
+    # time.sleep(1)
     # print('Finished initializing CUDA memory.')
 
     act_fns = {
@@ -111,6 +113,13 @@ def apply_act_fn(model: torch.nn.Module, act_fn_name: str, use_gated: bool, use_
     if use_rmsnorm:
         policy = {torch.nn.LayerNorm: lambda x, module_index: RMSNorm(dim=d_embed, eps=layernorm_eps)}
         surgery.replace_module_classes(model=model, policies=policy)
+
+    if use_fln:
+        policy = {
+            torch.nn.LayerNorm: lambda x, module_index: FusedLayerNorm(normalized_shape=d_embed, eps=layernorm_eps)
+        }
+        surgery.replace_module_classes(model=model, policies=policy)
+
     print(model)
 
 
@@ -147,10 +156,11 @@ class BERTGatedOutput(torch.nn.Module):
 
 class ActFnSearch(Algorithm):
 
-    def __init__(self, act_fn_name: str, use_gated: bool, use_rmsnorm: bool) -> None:
+    def __init__(self, act_fn_name: str, use_gated: bool, use_rmsnorm: bool, use_fln: bool) -> None:
         self.act_fn_name = act_fn_name
         self.use_gated = use_gated
         self.use_rmsnorm = use_rmsnorm
+        self.use_fln = use_fln
 
     def match(self, event: Event, state: State) -> bool:
         """ Runs on Event.INIT
@@ -166,4 +176,5 @@ class ActFnSearch(Algorithm):
             apply_act_fn(state.model,
                          act_fn_name=self.act_fn_name,
                          use_gated=self.use_gated,
-                         use_rmsnorm=self.use_rmsnorm)
+                         use_rmsnorm=self.use_rmsnorm,
+                         use_fln=self.use_fln)
