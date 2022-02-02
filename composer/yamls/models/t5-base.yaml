@@ -1,0 +1,73 @@
+train_dataset:
+  streaming_lm:
+    dataset_name: c4
+    dataset_config_name: en
+    split: train
+    max_shards: -1
+    max_samples: 10240000 # 1024sa * 10000ba
+    max_seq_len: 512
+    group_method: truncate
+    tokenizer_name: t5
+    use_masked_lm: false
+    seed: 17
+    shuffle: true
+    drop_last: true
+val_dataset:
+  streaming_lm:
+    dataset_name: c4
+    dataset_config_name: en
+    split: validation
+    max_shards: -1
+    max_samples: 102400 # 1024sa * 100ba
+    max_seq_len: 512
+    group_method: truncate
+    tokenizer_name: t5
+    use_masked_lm: false
+    seed: 17
+    shuffle: false
+    drop_last: true
+
+model:
+  t5:
+    use_pretrained: false
+    tokenizer_name: t5
+
+optimizer:
+  decoupled_adamw:
+    lr: 5.0e-4
+    betas:
+      - 0.9
+      - 0.98
+    eps: 1.0e-06
+    weight_decay: 1.0e-5
+schedulers:
+  - warmup:
+      warmup_method: linear
+      warmup_iters: 0.01dur
+      warmup_factor: 0
+      interval: step
+  - linear_decay:
+      start_factor: 1.0
+      end_factor: 0.0
+      total_iters: 0.99dur
+      interval: step
+      verbose: false
+loggers:
+  - tqdm: {}
+max_duration: 1ep
+train_batch_size: 1024
+eval_batch_size: 1024
+seed: 19
+device:
+  gpu: {}
+dataloader:
+  pin_memory: true
+  persistent_workers: true
+  num_workers: 1
+  timeout: 0
+  prefetch_factor: 1
+grad_accum: 1
+precision: amp
+grad_clip_norm: None
+validate_every_n_batches: 10
+validate_every_n_epochs: 1
