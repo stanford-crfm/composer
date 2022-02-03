@@ -674,7 +674,7 @@ class Trainer:
 
         if not self.deepspeed_enabled:
             for optimizer in state.optimizers:
-                optimizer.zero_grad()
+                optimizer.zero_grad(set_to_none=True)
 
         # tracker for gradient accumulation
         total_loss = self.device.tensor_to_device(torch.zeros(size=(1,)))
