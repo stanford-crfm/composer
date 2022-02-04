@@ -1,4 +1,5 @@
 # Copyright 2021 MosaicML. All Rights Reserved.
+__version__ = '0.4.1'
 
 from composer.algorithms import functional as functional
 from composer.core import Algorithm as Algorithm

@@ -84,20 +84,17 @@ class BlurPool(Algorithm):
     adds anti-aliasing filters to convolutional layers to increase accuracy
     and invariance to small shifts in the input.
 
-    Runs on ``Event.INIT`` and should be applied both before the model has
+    Runs somewhere cool and should be applied both before the model has
     been moved to accelerators and before the model’s parameters have
     been passed to an optimizer.
 
-    Args:
-        replace_convs: replace strided :class:`torch.nn.Conv2d` modules with
-            :class:`BlurConv2d` modules
-        replace_maxpools: replace eligible :class:`torch.nn.MaxPool2d` modules
-            with :class:`BlurMaxPool2d` modules.
-        blur_first: when ``replace_convs`` is ``True``, blur input before the
-            associated convolution. When set to ``False``, the convolution is
-            applied with a stride of 1 before the blurring, resulting in
-            significant overhead (though more closely matching the paper).
-            See :class:`~composer.algorithms.blurpool.BlurConv2d` for further discussion.
+    Parameters:
+        replace_convs (`bool`):
+            Does something cool.
+        replace_maxpools (`bool`):
+            Does another cool thing.
+        blur_first (`bool`):
+            So much cool stuff.
     """
 
     def __init__(self, replace_convs: bool, replace_maxpools: bool, blur_first: bool) -> None:
@@ -114,22 +111,11 @@ class BlurPool(Algorithm):
 
     def match(self, event: Event, state: State) -> bool:
         """Runs on Event.INIT
-        
-        Args:
-            event (:class:`Event`): The current event.
-            state (:class:`State`): The current state.
-        Returns:
-            bool: True if this algorithm should run now.
         """
         return event == Event.INIT
 
     def apply(self, event: Event, state: State, logger: Logger) -> Optional[int]:
         """Adds anti-aliasing filters to the maxpools and/or convolutions
-        
-        Args:
-            event (Event): the current event
-            state (State): the current trainer state
-            logger (Logger): the training logger
         """
         assert state.model is not None
 
