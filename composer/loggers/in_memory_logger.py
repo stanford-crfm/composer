@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple, Union
 
-from composer.core.logging import BaseLoggerBackend, LogLevel, TLogData
+from composer.core.logging import LoggerBackend, LogLevel, TLogData
 from composer.core.logging.logger import TLogDataValue
 from composer.core.time import Timestamp
 
 
-class InMemoryLogger(BaseLoggerBackend):
+class InMemoryLogger(LoggerBackend):
     """Stores all logging calls in memory.
 
     Args:
