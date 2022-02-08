@@ -32,7 +32,7 @@ from composer.core.event import Event
 from composer.core.logging.logger import Logger
 from composer.core.precision import Precision
 from composer.core.profiler import ProfilerEventHandlerHparams
-from composer.loggers import LoggerBackendHparams
+from composer.loggers import LoggerCallbackHparams
 from composer.loggers.logger_hparams import MosaicMLLoggerHparams
 from composer.loggers.tqdm_logger import TQDMLogger
 from composer.models.base import ComposerModel
@@ -340,7 +340,7 @@ def _build_trainer(composer_trainer_hparams: TrainerHparams, dummy_num_classes: 
     if instance is None:
         instance = hparams_cls()
 
-    if isinstance(instance, LoggerBackendHparams):
+    if isinstance(instance, LoggerCallbackHparams):
         composer_trainer_hparams.loggers.append(instance)
     elif isinstance(instance, ProfilerCallbackHparams):
         composer_trainer_hparams.profiler = ProfilerHparams(profilers=[instance])

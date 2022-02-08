@@ -2,7 +2,7 @@
 
 from typing import Type
 
-from composer.loggers.logger_hparams import (LoggerBackendHparams, FileLoggerHparams, TQDMLoggerHparams,
+from composer.loggers.logger_hparams import (LoggerCallbackHparams, FileLoggerHparams, TQDMLoggerHparams,
                                              WandBLoggerHparams)
 
 logger_registry = {
@@ -12,5 +12,5 @@ logger_registry = {
 }
 
 
-def get_logger_hparams(name: str) -> Type[LoggerBackendHparams]:
+def get_logger_hparams(name: str) -> Type[LoggerCallbackHparams]:
     return logger_registry[name]

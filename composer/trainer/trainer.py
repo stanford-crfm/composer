@@ -22,7 +22,7 @@ from torchmetrics.metric import Metric
 from composer.core import Callback, DataSpec, Engine, Event, Logger, State, Time, surgery
 from composer.core.algorithm import Algorithm
 from composer.core.evaluator import Evaluator
-from composer.core.logging import LoggerBackend, LogLevel
+from composer.core.logging import LoggerCallback, LogLevel
 from composer.core.time import TimeUnit
 from composer.core.types import (Batch, BreakEpochException, DataLoader, Evaluators, Metrics, Optimizers, Precision,
                                  Schedulers)
@@ -90,7 +90,7 @@ class Trainer:
         deterministic_mode (bool, optional): Run the model deterministically. Experimental. Performance
             degradations expected. Certain Torch modules may not have deterministic implementations,
             which will result in a crash. (default: ``False``)
-        log_destinations (List[LoggerBackend], optional): The destinations to log training information to.
+        log_destinations (List[LoggerCallback], optional): The destinations to log training information to.
             (default: ``[TQDMLogger()]``).
         callbacks (Sequence[Callback], optional): The callbacks to run during training. (default: ``[]``)
         load_path (str, optional): Path to a specific checkpoint to load. If not set (the default),
@@ -160,7 +160,7 @@ class Trainer:
         deterministic_mode: bool = False,
 
         # Logging and callbacks
-        loggers: Optional[Sequence[LoggerBackend]] = None,
+        loggers: Optional[Sequence[LoggerCallback]] = None,
         callbacks: Sequence[Callback] = tuple(),
 
         # load checkpoint

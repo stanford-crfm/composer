@@ -22,7 +22,7 @@ from composer.core.types import JSON, Precision
 from composer.datasets import DataloaderHparams
 from composer.datasets.dataset_registry import get_dataset_registry
 from composer.datasets.evaluator import EvaluatorHparams
-from composer.loggers import (LoggerBackendHparams, FileLoggerHparams, MosaicMLLoggerHparams, TQDMLoggerHparams,
+from composer.loggers import (LoggerCallbackHparams, FileLoggerHparams, MosaicMLLoggerHparams, TQDMLoggerHparams,
                               WandBLoggerHparams)
 from composer.models import (BERTForClassificationHparams, BERTHparams, CIFARResNet9Hparams, CIFARResNetHparams,
                              DeepLabV3Hparams, EfficientNetB0Hparams, GPT2Hparams, MnistClassifierHparams, ModelHparams,
@@ -128,7 +128,7 @@ class TrainerHparams(hp.Hparams):
     optimizer: OptimizerHparams = hp.required(doc="Optimizer to use")
 
     model: ModelHparams = hp.required(doc="model")
-    loggers: List[LoggerBackendHparams] = hp.required(doc="loggers to use")
+    loggers: List[LoggerCallbackHparams] = hp.required(doc="loggers to use")
 
     max_duration: str = hp.required(doc="Time string for the maximum training duration (e.g., 90ep)")
 

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import yahp as hp
 
-from composer.core.logging import LoggerBackend, LogLevel
+from composer.core.logging import LoggerCallback, LogLevel
 from composer.core.types import JSON
 from composer.loggers.in_memory_logger import InMemoryLogger
 from composer.loggers.mosaicml_logger import RunType
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class LoggerBackendHparams(hp.Hparams, ABC):
+class LoggerCallbackHparams(hp.Hparams, ABC):
     """Base class for logger backend hyperparameters.
 
     Logger parameters that are added to
@@ -33,7 +33,7 @@ class LoggerBackendHparams(hp.Hparams, ABC):
     """
 
     @abstractmethod
-    def initialize_object(self, config: Optional[Dict[str, Any]] = None) -> LoggerBackend:
+    def initialize_object(self, config: Optional[Dict[str, Any]] = None) -> LoggerCallback:
         """Initializes the logger.
 
         Args:
@@ -44,7 +44,7 @@ class LoggerBackendHparams(hp.Hparams, ABC):
 
 
 @dataclass
-class FileLoggerHparams(LoggerBackendHparams):
+class FileLoggerHparams(LoggerCallbackHparams):
     """:class:`~composer.loggers.file_logger.FileLogger`
     hyperparameters.
 
@@ -73,7 +73,7 @@ class FileLoggerHparams(LoggerBackendHparams):
 
 
 @dataclass
-class WandBLoggerHparams(LoggerBackendHparams):
+class WandBLoggerHparams(LoggerCallbackHparams):
     """:class:`~composer.loggers.wandb_logger.WandBLogger`
     hyperparameters.
 
@@ -199,7 +199,7 @@ class WandBLoggerHparams(LoggerBackendHparams):
 
 
 @dataclass
-class TQDMLoggerHparams(LoggerBackendHparams):
+class TQDMLoggerHparams(LoggerCallbackHparams):
     """:class:`~composer.loggers.tqdm_logger.TQDMLogger`
     hyperparameters.
 
@@ -213,7 +213,7 @@ class TQDMLoggerHparams(LoggerBackendHparams):
 
 
 @dataclass
-class MosaicMLLoggerHparams(LoggerBackendHparams):
+class MosaicMLLoggerHparams(LoggerCallbackHparams):
     """:class:`~composer.loggers.mosaicml_logger.MosaicMLLogger`
     hyperparameters.
 
@@ -245,7 +245,7 @@ class MosaicMLLoggerHparams(LoggerBackendHparams):
 
 
 @dataclass
-class InMemoryLoggerHaparms(LoggerBackendHparams):
+class InMemoryLoggerHaparms(LoggerCallbackHparams):
     """:class:`~composer.loggers.in_memory_logger.InMemoryLogger`
     hyperparameters.
 
@@ -254,5 +254,5 @@ class InMemoryLoggerHaparms(LoggerBackendHparams):
     """
     log_level: LogLevel = hp.optional("The maximum verbosity to log. Default: BATCH", default=LogLevel.BATCH)
 
-    def initialize_object(self, config: Optional[Dict[str, Any]] = None) -> LoggerBackend:
+    def initialize_object(self, config: Optional[Dict[str, Any]] = None) -> LoggerCallback:
         return InMemoryLogger(log_level=self.log_level)

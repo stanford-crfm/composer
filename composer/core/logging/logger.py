@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Callable, Generator, Mapping, Sequence, Union
 import torch
 
 if TYPE_CHECKING:
-    from composer.core.logging.base_backend import LoggerBackend
+    from composer.core.logging.base_backend import LoggerCallback
     from composer.core.state import State
     from composer.core.types import JSON
 
@@ -38,32 +38,32 @@ class LogLevel(IntEnum):
 
 class Logger:
     """Logger routes metrics to the
-    :class:`~composer.core.logging.base_backend.LoggerBackend`.
+    :class:`~composer.core.logging.base_backend.LoggerCallback`.
 
     Args:
         state (~composer.core.state.State):
             The global :class:`~composer.core.state.State` object.
-        backends (Sequence[LoggerBackend]):
+        backends (Sequence[LoggerCallback]):
             A sequence of
-            :class:`~composer.core.logging.base_backend.LoggerBackend`\\s
+            :class:`~composer.core.logging.base_backend.LoggerCallback`\\s
             to which logging calls will be sent.
 
     Attributes:
-        backends (Sequence[LoggerBackend]):
+        backends (Sequence[LoggerCallback]):
             A sequence of
-            :class:`~composer.core.logging.base_backend.LoggerBackend`\\s
+            :class:`~composer.core.logging.base_backend.LoggerCallback`\\s
             to which logging calls will be sent.
     """
 
     def __init__(
             self,
             state: State,
-            backends: Sequence[LoggerBackend] = tuple(),
+            backends: Sequence[LoggerCallback] = tuple(),
     ):
         self.backends = backends
         self._state = state
 
-    def _get_destinations_for_log_level(self, log_level: LogLevel) -> Generator[LoggerBackend, None, None]:
+    def _get_destinations_for_log_level(self, log_level: LogLevel) -> Generator[LoggerCallback, None, None]:
         for destination in self.backends:
             if destination.will_log(self._state, log_level):
                 yield destination
@@ -78,7 +78,7 @@ class Logger:
                 data to be logged. Callables will be invoked
                 only when :meth:`~composer.core.logging.logger.Logger.will_log`
                 returns True for at least one
-                :class:`~composer.core.logging.base_backend.LoggerBackend`.
+                :class:`~composer.core.logging.base_backend.LoggerCallback`.
                 Useful when it is expensive to generate the data to be logged.
         """
         if isinstance(log_level, str):

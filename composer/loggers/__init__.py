@@ -2,7 +2,7 @@
 
 from composer.loggers.file_logger import FileLogger
 from composer.loggers.in_memory_logger import InMemoryLogger
-from composer.loggers.logger_hparams import (LoggerBackendHparams, FileLoggerHparams, InMemoryLoggerHaparms,
+from composer.loggers.logger_hparams import (LoggerCallbackHparams, FileLoggerHparams, InMemoryLoggerHaparms,
                                              MosaicMLLoggerHparams, TQDMLoggerHparams, WandBLoggerHparams)
 from composer.loggers.mosaicml_logger import MosaicMLLogger
 from composer.loggers.tqdm_logger import TQDMLogger
@@ -12,7 +12,7 @@ from composer.loggers.wandb_logger import WandBLogger
 __all__ = [
     "FileLogger",
     "InMemoryLogger",
-    "LoggerBackendHparams",
+    "LoggerCallbackHparams",
     "FileLoggerHparams",
     "InMemoryLoggerHaparms",
     "MosaicMLLoggerHparams",
