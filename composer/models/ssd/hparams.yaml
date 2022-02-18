@@ -25,7 +25,7 @@ loggers:
 train_batch_size: 128
 eval_batch_size: 128
 seed: 0
-validate_every_n_epochs: 10
+validate_every_n_epochs: 1
 grad_accum: 1
 device:
   gpu: {}
@@ -35,5 +35,7 @@ dataloader:
   timeout: 0
   prefetch_factor: 2
   persistent_workers: true
-  num_workers: 8
+  num_workers: 4
 precision: amp
+train_subset_num_batches: 60
+eval_subset_num_batches: 60

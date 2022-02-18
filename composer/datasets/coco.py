@@ -457,13 +457,17 @@ class COCO:
         if type(resFile) == str: #or type(resFile) == unicode:
             anns = json.load(open(resFile))
         elif type(resFile) == np.ndarray:
+            #import pdb; pdb.set_trace()
             anns = self.loadNumpyAnnotations(resFile)
         else:
             anns = resFile
         assert type(anns) == list, 'results in not an array of objects'
-        annsImgIds = [ann['image_id'] for ann in anns]
-        assert set(annsImgIds) == (set(annsImgIds) & set(self.getImgIds())), \
-               'Results do not correspond to current coco set'
+
+        #annsImgIds = [ann['image_id'] for ann in anns]
+        #assert set(annsImgIds) == (set(annsImgIds) & set(self.getImgIds())), \
+        #       'Results do not correspond to current coco set'
+        #print(anns)
+        print(type(anns))
         if 'caption' in anns[0]:
             imgIds = set([img['id'] for img in res.dataset['images']]) & set([ann['image_id'] for ann in anns])
             res.dataset['images'] = [img for img in res.dataset['images'] if img['id'] in imgIds]
@@ -533,20 +537,22 @@ class COCO:
         """
         assert(type(data) == np.ndarray)
 
-        #data = data[0]
+        d = data[0]
         #assert(data.shape[1] == 7)
-        N = len(data) #data.shape[0]
+        #print('SHAPE', data.shape)
+        N = len(d) #data.shape[0]
         ann = []
-
+        #import pdb; pdb.set_trace()
         for i in range(N):
             ann += [{
-                'image_id'  : int(data[i,0]),
-                'bbox'  : [ data[i,1], data[i,2], data[i,3], data[i,4] ],
-                'score' : data[i,5],
-                'category_id': int(data[i,6]),
+                'image_id'  : int(d[i][0]),
+                'bbox'  : [ d[i][1], d[i][2], d[i][3], d[i][4] ],
+                'score' : d[i][5],
+                'category_id': int(d[i][6]),
                 }]
 
-        #import pdb; pdb.set_trace()        
+        #import pdb; pdb.set_trace()
+        print('DONE')
         return ann
 
     def annToRLE(self, ann):
