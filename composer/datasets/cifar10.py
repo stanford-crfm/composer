@@ -1,7 +1,10 @@
 # Copyright 2021 MosaicML. All Rights Reserved.
 
+import textwrap
 from dataclasses import dataclass
+from typing import List
 
+import torch
 import yahp as hp
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
@@ -21,6 +24,7 @@ class CIFAR10DatasetHparams(DatasetHparams, SyntheticHparamsMixin):
         download (bool): Whether to download the dataset, if needed.
     """
     download: bool = hp.optional("whether to download the dataset, if needed", default=True)
+    use_ffcv: bool = hp.optional("whether to use ffcv for faster dataloading", default=False)
 
     def initialize_object(self, batch_size: int, dataloader_hparams: DataloaderHparams) -> DataLoader:
         cifar10_mean, cifar10_std = [0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]
@@ -36,6 +40,54 @@ class CIFAR10DatasetHparams(DatasetHparams, SyntheticHparamsMixin):
                 memory_format=self.synthetic_memory_format,
             )
 
+        elif self.use_ffcv:
+            try:
+                from ffcv.fields.decoders import IntDecoder, SimpleRGBImageDecoder
+                from ffcv.loader import Loader, OrderOption
+                from ffcv.transforms import (Convert, Cutout, RandomHorizontalFlip, RandomResizedCrop, RandomTranslate,
+                                             ToDevice, ToTensor, ToTorchImage)
+                from ffcv.transforms.common import Squeeze
+            except ImportError:
+                raise ImportError(
+                    textwrap.dedent("""\
+                    Composer was installed without ffcv support.
+                    To use ffcv with Composer, run `pip install mosaicml[ffcv]`"""))
+
+            if self.datadir is None:
+                raise ValueError("datadir is required if use_synthetic is False")
+
+            cifar10_ffcv_mean = [125.307, 122.961, 113.8575]
+            cifar10_ffcv_std = [51.5865, 50.847, 51.255]
+            label_pipeline: List[Operation] = [IntDecoder(), ToTensor(), Squeeze()]
+            image_pipeline: List[Operation] = [SimpleRGBImageDecoder()]
+
+            if self.is_train:
+                image_pipeline.extend([
+                    RandomHorizontalFlip(),
+                    #RandomTranslate(padding=2, fill=tuple(map(int, cifar10_ffcv_mean))),
+                    #Cutout(4, tuple(map(int, cifar10_ffcv_mean))),
+                ])
+            # Common transforms for train and test
+            image_pipeline.extend([
+                ToTensor(),
+                ToTorchImage(channels_last=False, convert_back_int16=False),
+                Convert(torch.float32),
+                transforms.Normalize(cifar10_ffcv_mean, cifar10_ffcv_std),
+            ])
+
+            ordering = OrderOption.RANDOM if self.is_train else OrderOption.SEQUENTIAL
+
+            filepath = "/cifar10_train.beton" if self.is_train else "/cifar10_test.beton"
+
+            return Loader(self.datadir + filepath,
+                          batch_size=batch_size,
+                          num_workers=dataloader_hparams.num_workers,
+                          order=ordering,
+                          drop_last=self.drop_last,
+                          pipelines={
+                              'image': image_pipeline,
+                              'label': label_pipeline
+                          })
         else:
             if self.datadir is None:
                 raise ValueError("datadir is required if use_synthetic is False")

@@ -95,7 +95,8 @@ class DataSpec:
             self.num_samples = num_samples
 
         else:
-            if isinstance(dataloader.dataset, collections.abc.Sized):
+            # FFCV dataloaders don't have an associated dataset
+            if hasattr(dataloader, "dataset") and isinstance(dataloader.dataset, collections.abc.Sized):
                 try:
                     self.num_samples = len(dataloader.dataset)
                 except (TypeError, NotImplementedError):

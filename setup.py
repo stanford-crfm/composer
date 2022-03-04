@@ -122,6 +122,15 @@ extra_deps["nlp"] = [
     'datasets>=1.14',
 ]
 
+# apt update; apt install libopencv-dev libturbojpeg-dev
+# If ffcv can't find opencv4, use
+# cp /usr/lib/x86_64-linux-gnu/pkgconfig/opencv.pc /usr/lib/x86_64-linux-gnu/pkgconfig/opencv4.pc
+extra_deps["ffcv"] = [
+    'opencv-python>=4.5.5',
+    'ffcv>=0.0.3',
+    'numba>=0.55.1',
+]
+
 extra_deps['all'] = set(dep for deps in extra_deps.values() for dep in deps)
 
 setup(name="mosaicml",
