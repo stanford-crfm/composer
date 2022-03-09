@@ -37,7 +37,8 @@ model:
       n_ctx: 1024
       n_embd: 768
       n_head: 12
-      n_inner: 3072
+      # n_inner: 3072
+      n_inner: null # mistral change
       n_layer: 12
       n_positions: 1024
       resid_pdrop: 0.1
@@ -55,7 +56,7 @@ model:
       use_cache: true
       vocab_size: 50257
       # core mistral changes:
-      reorder_and_upcast_atnn: true
+      reorder_and_upcast_attn: true
       scale_attn_by_inverse_layer_idx: true
 optimizer:
   adamw:
