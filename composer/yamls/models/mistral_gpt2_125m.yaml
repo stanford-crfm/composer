@@ -51,7 +51,7 @@ model:
         text-generation:
           do_sample: true
           max_length: 50
-      transformers_version: 4.11.0.dev0
+      transformers_version: 4.16.2
       use_cache: true
       vocab_size: 50257
       # core mistral changes:
@@ -64,10 +64,10 @@ optimizer:
       - 0.9
       - 0.999
     eps: 1.0e-08
-    weight_decay: 0.0
+    weight_decay: 0.1
 schedulers:
-  - cosine_decay_with_warmup:
-      t_warmup: 0.01dur
+  - linear:
+      t_warmup: 4000 #0.01dur
 loggers:
   - tqdm: {}
 max_duration: 1ep
@@ -84,7 +84,8 @@ dataloader:
   timeout: 0
   prefetch_factor: 2
 deepspeed:
-  zero_stage: 0
+  zero_optimization:
+    stage: 0
 precision: fp16
 grad_clip_norm: 1.0
 validate_every_n_batches: 1000
