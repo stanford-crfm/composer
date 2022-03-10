@@ -16,7 +16,7 @@ import yahp as hp
 import composer
 from composer.algorithms import AlgorithmHparams, get_algorithm_registry
 from composer.callbacks import (CallbackHparams, GradMonitorHparams, LRMonitorHparams, MemoryMonitorHparams,
-                                RunDirectoryUploaderHparams, SpeedMonitorHparams)
+                                RunDirectoryUploaderHparams, SpeedMonitorHparams, LossScaleMonitorHparams)
 from composer.core.types import JSON, Precision
 from composer.datasets import DataloaderHparams, DatasetHparams
 from composer.datasets.dataset_registry import get_dataset_registry
@@ -93,6 +93,7 @@ algorithms_registry = get_algorithm_registry()
 callback_registry = {
     "speed_monitor": SpeedMonitorHparams,
     "lr_monitor": LRMonitorHparams,
+    "loss_scale_monitor": LossScaleMonitorHparams,
     "grad_monitor": GradMonitorHparams,
     "memory_monitor": MemoryMonitorHparams,
     "run_directory_uploader": RunDirectoryUploaderHparams,
