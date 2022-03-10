@@ -60,6 +60,7 @@ class PubMed(datasets.GeneratorBasedBuilder):
             names: List[str] = list(_N_SHARDS_PER_SPLIT)
         else:
             names: List[str] = [self.config.name]
+            logger.info(f"all was not set for name, pulling: {names}")
 
         for split in ["train", "val"]:
             for name in names:
