@@ -12,7 +12,7 @@ logger = datasets.logging.get_logger(__name__)
 
 _DESCRIPTION: str = """\
 The Pile’s subsets of PubMed (abstracts and text).
-Hosted at https://worksheets.codalab.org/bundles/0xf8f802d486fc44aabadb57e7f5fabc92.
+Hosted at https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded.
 """
 
 _CITATION: str = """
@@ -34,7 +34,7 @@ _N_SHARDS_PER_SPLIT: Dict[str, Dict[str, int]] = {
 }
 
 _DATA_URL: str = (
-    "https://worksheets.codalab.org/rest/bundles/0xf8f802d486fc44aabadb57e7f5fabc92/contents/blob/"
+    "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
     "pubmed{name}_{split}.{index}-of-{n_shards}.jsonl.gz"
 )
 

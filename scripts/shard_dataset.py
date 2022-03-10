@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 """
 Shard the training and validation sets of a given dataset into n_shards_train and n_shards_val shards.
+We currently only support jsonl files.
 
 Usage:
 
@@ -14,6 +15,7 @@ Usage:
     --n-shards-train <Number of shards for training set> --n-shards-val <Number of shards for validation set> \
     --train-files <List of train files> --val-files <List of val files>
 
+Run gzip *.jsonl after to compress.
 """
 
 

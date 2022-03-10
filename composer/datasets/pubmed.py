@@ -278,7 +278,6 @@ class PubmedDataset(IterableDataset):
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
         # Load and shard dataset
-        # TODO: pass in name? -Tony
         text_dataset = datasets.load_dataset(
             path="scripts/pubmed.py", name="all", split=split, streaming=True
         )
