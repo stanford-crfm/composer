@@ -55,7 +55,11 @@ class PubMed(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_urls: Dict[str, List[str]] = {}
-        names: List[str] = list(_N_SHARDS_PER_SPLIT) if self.config.name == _ALL else [self.config.name]
+        if self.config.name == _ALL:
+            logger.info(f"Pulling all: {list(_N_SHARDS_PER_SPLIT)}...")
+            names: List[str] = list(_N_SHARDS_PER_SPLIT)
+        else:
+            names: List[str] = [self.config.name]
 
         for split in ["train", "val"]:
             for name in names:
