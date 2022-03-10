@@ -26,6 +26,7 @@ from composer.datasets.lm_datasets import LMDatasetHparams as LMDatasetHparams
 from composer.datasets.mnist import MNISTDatasetHparams as MNISTDatasetHparams
 from composer.datasets.mnist import MNISTWebDatasetHparams as MNISTWebDatasetHparams
 from composer.datasets.synthetic import MemoryFormat as MemoryFormat
+from composer.datasets.pubmed import PubMedDatasetHparams as PubMedDatasetHparams
 from composer.datasets.synthetic import SyntheticBatchPairDataset as SyntheticBatchPairDataset
 from composer.datasets.synthetic import SyntheticDataLabelType as SyntheticDataLabelType
 from composer.datasets.synthetic import SyntheticDataType as SyntheticDataType
