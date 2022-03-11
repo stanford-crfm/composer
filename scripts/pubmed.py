@@ -1,4 +1,4 @@
-"""PubMed dataset from The Pile."""
+# HuggingFace loading script for the PubMed portion of The Pile.
 
 from typing import Dict, List
 import gzip
@@ -56,8 +56,8 @@ class PubMed(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         data_urls: Dict[str, List[str]] = {}
         if self.config.name == _ALL:
-            logger.info(f"Pulling all: {list(_N_SHARDS_PER_SPLIT)}...")
             names: List[str] = list(_N_SHARDS_PER_SPLIT)
+            logger.info(f"Pulling all: {list(_N_SHARDS_PER_SPLIT)}...")
         else:
             names: List[str] = [self.config.name]
             logger.info(f"all was not set for name, pulling: {names}")

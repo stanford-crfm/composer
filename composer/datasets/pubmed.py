@@ -1,4 +1,4 @@
-# Adapted from c4.py.
+# PubMed dataset for Composer. Adapted from c4.py.
 
 import logging
 from dataclasses import dataclass
