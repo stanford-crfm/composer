@@ -40,13 +40,12 @@ class LossScaleMonitor(Callback):
 
     @staticmethod
     def _find_scale(optimizer):
-        options = [lambda: optimizer.loss_scale, lambda: optimizer.dynamic_loss_scale, lambda: optimizer.cur_scale]
+        options = [lambda: optimizer.loss_scale, lambda: optimizer.cur_scale]
         for o in options:
             try:
                 return o()
             except AttributeError:
                 pass
-
 
     def batch_end(self, state: State, logger: Logger):
         assert state.optimizers is not None, "optimizers must be defined"
