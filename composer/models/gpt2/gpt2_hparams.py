@@ -49,7 +49,7 @@ class GPT2Hparams(TransformerHparams):
         tokenizer = transformers.GPT2Tokenizer.from_pretrained(self.tokenizer_name)
 
         if self.use_pretrained:
-            model = transformers.AutoModelForCausalLM.from_pretrained(self.pretrained_model_name)
+            model = transformers.AutoModelForCausalLM.from_pretrained(self.pretrained_model_name, config=config)
         else:
             model = transformers.AutoModelForCausalLM.from_config(config)  #type: ignore (thirdparty)
 
