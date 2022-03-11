@@ -10,7 +10,7 @@ class LossScaleMonitor(Callback):
     """Logs the learning rate.
 
     This callback iterates over all optimizers that have a loss scale and logs it under
-    ``loss_scale-{OPTIMIZER_NAME}/loss_scale`` key.
+    ``loss_scale-{OPTIMIZER_NAME}`` key.
 
     Example
        >>> # constructing trainer object with this callback
@@ -38,9 +38,20 @@ class LossScaleMonitor(Callback):
     def __init__(self) -> None:
         super().__init__()
 
+    @staticmethod
+    def _find_scale(optimizer):
+        options = [lambda: optimizer.loss_scale, lambda: optimizer.dynamic_loss_scale, lambda: optimizer.cur_scale]
+        for o in options:
+            try:
+                return o()
+            except AttributeError:
+                pass
+
+
     def batch_end(self, state: State, logger: Logger):
         assert state.optimizers is not None, "optimizers must be defined"
         for optimizer in state.optimizers:
-            if hasattr(optimizer, "loss_scale"):
+            scale = LossScaleMonitor._find_scale(optimizer)
+            if scale:
                 name = optimizer.__class__.__name__
-                logger.metric(f"loss_scale-{name}", optimizer.loss_scale)
+                logger.metric_batch({f"loss_scale-{name}": scale})
