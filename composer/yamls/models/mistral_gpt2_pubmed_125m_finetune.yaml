@@ -20,6 +20,7 @@ val_dataset:
     drop_last: false
 model:
   gpt2:
+    pretrained_model_name: gpt2
     use_pretrained: true
     tokenizer_name: gpt2
     model_config:
