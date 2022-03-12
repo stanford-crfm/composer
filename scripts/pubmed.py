@@ -49,7 +49,7 @@ _DATA_URL_PUBMED: str = (
 
 _N_SHARDS_PER_SPLIT_MEDICAL_TEXT: Dict[str, int] = {"train": 128, "val": 8}
 _DATA_URL_MEDICAL_TEXT: str = (
-    "https://storage.googleapis.com/pubmed-mosaic/fake-plain-medical-text-sharded/"
+    "https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/"
     "plain_medical_text_{split}.{index}-of-{n_shards}.jsonl.gz"
 )
 
@@ -111,8 +111,10 @@ class PubMed(datasets.GeneratorBasedBuilder):
         random.shuffle(data_urls["train"])
         random.shuffle(data_urls["val"])
 
-        assert len(data_urls["train"]) == 128 * 3
-        assert len(data_urls["val"]) == 8 * 3
+        assert len(data_urls["train"]) == 128 * 3, f"Expected {128 * 3} files, but got {len(data_urls['train'])}" \
+                                                   f"\n{data_urls['train']}"
+        assert len(data_urls["val"]) == 8 * 3, f"Expected {8 * 3} files, but got {len(data_urls['val'])}" \
+                                               f"\n{data_urls['val']}"
 
         return [
             datasets.SplitGenerator(
