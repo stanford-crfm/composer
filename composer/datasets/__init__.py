@@ -29,6 +29,7 @@ from composer.datasets.imagenet import (Imagenet1kWebDatasetHparams, ImagenetDat
                                         TinyImagenet200WebDatasetHparams)
 from composer.datasets.lm_datasets import LMDatasetHparams
 from composer.datasets.mnist import MNISTDatasetHparams, MNISTWebDatasetHparams
+from composer.datasets.pubmed import PubMedDatasetHparams
 from composer.datasets.synthetic import (MemoryFormat, SyntheticBatchPairDataset, SyntheticDataLabelType,
                                          SyntheticDataType, SyntheticPILDataset)
 
@@ -39,5 +40,5 @@ __all__ = [
     "GLUEHparams", "DatasetHparams", "SyntheticHparamsMixin", "WebDatasetHparams", "Imagenet1kWebDatasetHparams",
     "ImagenetDatasetHparams", "TinyImagenet200WebDatasetHparams", "LMDatasetHparams", "MNISTDatasetHparams",
     "MNISTWebDatasetHparams", "MemoryFormat", "SyntheticBatchPairDataset", "SyntheticDataLabelType",
-    "SyntheticDataType", "SyntheticPILDataset"
+    "SyntheticDataType", "SyntheticPILDataset", PubMedDatasetHparams
 ]
