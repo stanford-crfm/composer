@@ -1,8 +1,8 @@
-# Composer configuration for PubMed GPT-2 (350M)
+# Composer configuration for Medical GPT-2 (350M)
 train_dataset:
   pubmed:
     split: train
-    max_samples: 18144581 # pubmedC_train.jsonl + pubmedAbs_train.jsonl = 2,931,565 + 15,213,016 = 18,144,581
+    max_samples: 18179219  # pubmedC_train.jsonl + pubmedAbs_train.jsonl + plain_medical_text_train.jsonl = 2,931,565 + 15,213,016 + 34,638  = 18,179,219
     max_seq_len: 1024
     tokenizer_name: gpt2
     group_method: concat
@@ -11,7 +11,7 @@ train_dataset:
 val_dataset:
   pubmed:
     split: validation
-    max_samples: 35677 # pubmedC_val.json + pubmedAbs_val.jsonl = 5,822 + 29,855 = 35,677
+    max_samples: 35746 # pubmedC_val.json + pubmedAbs_val.jsonl + plain_medical_text_val.jsonl = 5,822 + 29,855 + 69 = 35,746
     max_seq_len: 1024
     tokenizer_name: gpt2
     group_method: concat
@@ -58,7 +58,7 @@ model:
       scale_attn_by_inverse_layer_idx: true
 optimizer:
   adamw:
-    lr: 1.0e-4
+    lr: 2.0e-4
     betas:
       - 0.9
       - 0.999
