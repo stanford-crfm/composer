@@ -1,5 +1,6 @@
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 import argparse
+import json
 import os
 import random
 
@@ -40,8 +41,13 @@ class DatasetSplitter:
     def split(self):
         def write(file_name: str, split: List[str]):
             with open(os.path.join(self.output_path, file_name), "w+") as f:
-                for line in split:
+                for i, line in enumerate(split):
+                    line_dict: Dict[str, str] = json.loads(line)
+                    line_dict.pop("id", None)
+                    line = json.dumps(line_dict)
                     f.write(line)
+                    if i < len(split) - 1:
+                        f.write("\n")
             print(f"Outputted {len(split)} lines to {file_name}.")
 
         print("Processing train files...")
@@ -73,7 +79,7 @@ def main():
     parser.add_argument(
         "--val-size-fraction",
         type=float,
-        default=0.1,
+        default=0.002,
         help="What percentage of the dataset should be part of the validation split"
     )
 
