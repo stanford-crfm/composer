@@ -82,9 +82,8 @@ class PubMed(datasets.GeneratorBasedBuilder):
         data_urls: Dict[str, List[str]] = {}
 
         # Add the sharded PubMed
-        for split in ["train", "val"]:
-            for name in list(_N_SHARDS_PER_SPLIT_PUBMED):
-                n_shards: int = _N_SHARDS_PER_SPLIT_PUBMED[name][split]
+        for name, shard_info in _N_SHARDS_PER_SPLIT_PUBMED.items():
+            for split, n_shards in shard_info.items():
                 data_urls[split] = [
                     _DATA_URL_PUBMED.format(
                         name=name,
@@ -96,7 +95,7 @@ class PubMed(datasets.GeneratorBasedBuilder):
                 ]
 
         # Add the sharded plain medical text
-        for split, n_shards in _N_SHARDS_PER_SPLIT_MEDICAL_TEXT:
+        for split, n_shards in _N_SHARDS_PER_SPLIT_MEDICAL_TEXT.items():
             data_urls[split].extend(
                 [
                     _DATA_URL_MEDICAL_TEXT.format(
@@ -108,19 +107,21 @@ class PubMed(datasets.GeneratorBasedBuilder):
                 ]
             )
 
-        # TODO: is random.shuffle good enough to interleave data from different data sources?
+        # TODO: is random.shuffle good enough to ensure we're interleaving data from different data sources?
+        random.shuffle(data_urls["train"])
+        random.shuffle(data_urls["val"])
+
+        assert len(data_urls["train"]) == 128 * 3
+        assert len(data_urls["val"]) == 8 * 3
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepaths": dl_manager.download(random.shuffle(data_urls["train"]))
-                },
+                gen_kwargs={"filepaths": dl_manager.download(data_urls["train"])},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepaths": dl_manager.download(random.shuffle(data_urls["val"]))
-                },
+                gen_kwargs={"filepaths": dl_manager.download(data_urls["val"])},
             ),
         ]
 
