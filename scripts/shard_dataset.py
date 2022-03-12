@@ -15,6 +15,12 @@ Usage:
     --n-shards-train <Number of shards for training set> --n-shards-val <Number of shards for validation set> \
     --train-files <List of train files> --val-files <List of val files>
 
+Example usage:
+
+    python3 scripts/shard_dataset.py --output-path plain_medical_text --n-shards-train 128 --n-shards-val 8 \ 
+    --train-files plain_medical_text/plain_medical_text_train.jsonl \
+    --val-files plain_medical_text/plain_medical_text_val.jsonl 
+
 Run gzip *.jsonl after to compress.
 """
 
