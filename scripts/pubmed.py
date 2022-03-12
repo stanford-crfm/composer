@@ -1,5 +1,5 @@
 # HuggingFace loading script for the PubMed portion of The Pile + plain medical text.
-
+from collections import defaultdict
 from typing import Dict, List
 import gzip
 import json
@@ -79,20 +79,22 @@ class PubMed(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_urls: Dict[str, List[str]] = {}
+        data_urls: Dict[str, List[str]] = defaultdict(list)
 
         # Add the sharded PubMed
         for name, shard_info in _N_SHARDS_PER_SPLIT_PUBMED.items():
             for split, n_shards in shard_info.items():
-                data_urls[split] = [
-                    _DATA_URL_PUBMED.format(
-                        name=name,
-                        split=split,
-                        index=index + 1,
-                        n_shards=n_shards,
-                    )
-                    for index in range(n_shards)
-                ]
+                data_urls[split].extend(
+                    [
+                        _DATA_URL_PUBMED.format(
+                            name=name,
+                            split=split,
+                            index=index + 1,
+                            n_shards=n_shards,
+                        )
+                        for index in range(n_shards)
+                    ]
+                )
 
         # Add the sharded plain medical text
         for split, n_shards in _N_SHARDS_PER_SPLIT_MEDICAL_TEXT.items():
