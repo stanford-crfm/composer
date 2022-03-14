@@ -45,8 +45,8 @@ class TransformerHparams(ModelHparams, ABC):
         if self.pretrained_model_name is None and self.model_config == {}:
             raise Exception("One of pretrained_model_name or model_config needed.")
 
-        if self.pretrained_model_name is not None and self.model_config != {}:
-            raise Exception("Only one of pretrained_model_name or model_config can be provided.")
+        # if self.pretrained_model_name is not None and self.model_config != {}:
+        #     raise Exception("Only one of pretrained_model_name or model_config can be provided.")
 
         # if self.use_pretrained and self.model_config:
         #     raise Exception("A model cannot load pretrained weights from configuration.")
