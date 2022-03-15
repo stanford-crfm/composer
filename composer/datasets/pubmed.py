@@ -219,15 +219,15 @@ class PubmedDataset(IterableDataset):
         self.shuffle_buffer_size = shuffle_buffer_size
         self.seed = seed
 
-        # Metadata
+        # Metadata: PubMed (abstract + full document) + plain medical text
         pubmed_metadata = {
             "train": {
-                "num_shards": 128,
-                "approx_samples_per_shard": 22903,
+                "num_shards": 128 + 128 + 128,
+                "approx_samples_per_shard": 120000,
             },
             "validation": {
-                "num_shards": 8,
-                "approx_samples_per_shard": 5822,
+                "num_shards": 8 + 8 + 8,
+                "approx_samples_per_shard": 3700,
             },
         }
         if self.split in pubmed_metadata:
