@@ -17,13 +17,14 @@ from composer.utils.object_store import ObjectStoreProviderHparams
 if TYPE_CHECKING:
     from composer.callbacks.grad_monitor import GradMonitor
     from composer.callbacks.lr_monitor import LRMonitor
+    from composer.callbacks.loss_scale_monitor import LossScaleMonitor
     from composer.callbacks.memory_monitor import MemoryMonitor
     from composer.callbacks.run_directory_uploader import RunDirectoryUploader
     from composer.callbacks.speed_monitor import SpeedMonitor
 
 __all__ = [
     "CallbackHparams", "GradMonitorHparams", "MemoryMonitorHparams", "LRMonitorHparams", "SpeedMonitorHparams",
-    "RunDirectoryUploaderHparams"
+    "RunDirectoryUploaderHparams", "LossScaleMonitorHparams",
 ]
 
 
@@ -102,6 +103,23 @@ class LRMonitorHparams(CallbackHparams):
         """
         from composer.callbacks.lr_monitor import LRMonitor
         return LRMonitor()
+
+
+@dataclass
+class LossScaleMonitorHparams(CallbackHparams):
+    """:class:`~composer.callbacks.loss_scale_monitor.LossScaleMonitor` hyperparameters.
+
+    There are no parameters as :class:`~composer.callbacks.loss_scale_monitor.LossScaleMonitor` does not take any parameters.
+    """
+
+    def initialize_object(self) -> LossScaleMonitor:
+        """Initialize the LossScaleMonitor callback.
+
+        Returns:
+            LossScaleMonitor: An instance of :mod:`~composer.callbacks.loss_scale_monitor.LossScaleMonitor`.
+        """
+        from composer.callbacks.loss_scale_monitor import LossScaleMonitor
+        return LossScaleMonitor()
 
 
 @dataclass
