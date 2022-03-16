@@ -47,7 +47,7 @@ class LossScaleMonitor(Callback):
             except AttributeError:
                 pass
 
-    def batch_end(self, state: State, logger: Logger):
+    def after_train_batch(self, state: State, logger: Logger):
         assert state.optimizers is not None, "optimizers must be defined"
         for optimizer in state.optimizers:
             scale = LossScaleMonitor._find_scale(optimizer)

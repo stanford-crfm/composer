@@ -90,4 +90,7 @@ grad_clip_norm: 1.0
 validate_every_n_batches: 1000
 validate_every_n_epochs: 1
 callbacks:
-  - loss_scale_monitor: {}
+  loss_scale_monitor: {}
+  grad_monitor:
+    log_layer_grad_norms: true
+
