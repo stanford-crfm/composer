@@ -1,9 +1,9 @@
 # Copyright 2021 MosaicML. All Rights Reserved.
 
-"""Monitor learning rate during training."""
-from composer.core import Callback, Logger, State
+"""Monitor loss scale during training."""
 
-__all__ = ["LossScaleMonitor"]
+from composer.core import Callback, State
+from composer.loggers import Logger
 
 
 class LossScaleMonitor(Callback):
@@ -53,4 +53,4 @@ class LossScaleMonitor(Callback):
             scale = LossScaleMonitor._find_scale(optimizer)
             if scale:
                 name = optimizer.__class__.__name__
-                logger.metric_batch({f"loss_scale-{name}": scale})
+                logger.data_batch({f"loss_scale-{name}": scale})
