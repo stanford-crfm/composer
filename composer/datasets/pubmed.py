@@ -1,9 +1,10 @@
 # PubMed dataset for Composer. Adapted from c4.py.
 
+import copy
 import logging
 from dataclasses import dataclass
 from functools import partial
-from itertools import chain
+from itertools import chain, cycle
 from typing import List
 
 import yahp as hp
