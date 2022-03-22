@@ -2,7 +2,7 @@
 train_dataset:
   pubmed:
     split: train
-    max_samples: 18179219  # pubmedC_train.jsonl + pubmedAbs_train.jsonl + plain_medical_text_train.jsonl = 2,931,565 + 15,213,016 + 34,638  = 18,179,219
+    num_samples: 18179219  # pubmedC_train.jsonl + pubmedAbs_train.jsonl + plain_medical_text_train.jsonl = 2,931,565 + 15,213,016 + 34,638  = 18,179,219
     max_seq_len: 1024
     tokenizer_name: gpt2
     group_method: concat
@@ -11,7 +11,7 @@ train_dataset:
 val_dataset:
   pubmed:
     split: validation
-    max_samples: 35746 # pubmedC_val.json + pubmedAbs_val.jsonl + plain_medical_text_val.jsonl = 5,822 + 29,855 + 69 = 35,746
+    num_samples: 35746 # pubmedC_val.json + pubmedAbs_val.jsonl + plain_medical_text_val.jsonl = 5,822 + 29,855 + 69 = 35,746
     max_seq_len: 1024
     tokenizer_name: gpt2
     group_method: concat
