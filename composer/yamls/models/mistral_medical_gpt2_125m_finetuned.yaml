@@ -60,12 +60,12 @@ model:
       scale_attn_by_inverse_layer_idx: true
 optimizer:
   adamw:
-    lr: 5E-5
+    lr: 3.0e-4
     betas:
       - 0.9
       - 0.999
     eps: 1.0e-08
-    weight_decay: 0.001
+    weight_decay: 0.1
 schedulers:
   - linear_decay_with_warmup:
       t_warmup: 10000ba #0.01dur
