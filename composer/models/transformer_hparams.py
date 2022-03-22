@@ -33,6 +33,7 @@ class TransformerHparams(ModelHparams, ABC):
         doc="Pretrained model name to pull from Huggingface Model Hub.",
         default=None,
     )
+    pretrained_revision: Optional[str] = hp.optional("Revision to use from Huggingface Model Hub", default=None)
     model_config: Dict[str, JSON] = hp.optional(doc="A dictionary providing a HuggingFace model configuration.",
                                                 default_factory=dict)
     use_pretrained: bool = hp.optional("Whether to initialize the model with the pretrained weights.", default=False)

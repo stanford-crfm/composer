@@ -39,7 +39,10 @@ class GPT2Hparams(TransformerHparams):
         if self.model_config:
             config = transformers.GPT2Config.from_dict(self.model_config)
         elif self.pretrained_model_name is not None:
-            config = transformers.GPT2Config.from_pretrained(self.pretrained_model_name)
+            kwargs = {}
+            if self.pretrained_revision:
+                kwargs["revision"] = self.pretrained_revision
+            config = transformers.GPT2Config.from_pretrained(self.pretrained_model_name, **kwargs)
         else:
             raise ValueError('One of pretrained_model_name or model_config needed.')
 
