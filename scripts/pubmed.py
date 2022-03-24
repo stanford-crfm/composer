@@ -3,13 +3,9 @@ from collections import defaultdict
 from typing import Dict, List
 import gzip
 import json
-import random
+from random import Random
 
 import datasets
-
-# Fix the random seed for reproducibility
-random.seed(0)
-
 
 logger = datasets.logging.get_logger(__name__)
 
@@ -37,21 +33,29 @@ _CITATION: str = """
 _URL: str = "https://github.com/stanford-crfm/composer"
 
 _ALL: str = "all"
-_N_SHARDS_PER_SPLIT_PUBMED: Dict[str, Dict[str, int]] = {
+N_SHARDS_PER_CORPUS_PER_SPLIT_PUBMED: Dict[str, Dict[str, int]] = {
     "Abs": {"train": 128, "val": 8},
     "C": {"train": 128, "val": 8},
+    "medical": {"train": 128, "val": 8},
 }
 
-_DATA_URL_PUBMED: str = (
-    "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
-    "pubmed{name}_{split}.{index}-of-{n_shards}.jsonl.gz"
-)
+DATA_URL_BY_CORPUS: Dict[str, str] = {
+    "Abs": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
+           "pubmedAbs_{split}.{index}-of-{n_shards}.jsonl.gz",
+    "C": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
+         "pubmedC_{split}.{index}-of-{n_shards}.jsonl.gz",
+    # TODO: split this into its own dataset, add mixing
+    "medical": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
+               "plain_medical_text_{split}.{index}-of-{n_shards}.jsonl.gz"
+}
 
-_N_SHARDS_PER_SPLIT_MEDICAL_TEXT: Dict[str, int] = {"train": 128, "val": 8}
-_DATA_URL_MEDICAL_TEXT: str = (
-    "https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/"
-    "plain_medical_text_{split}.{index}-of-{n_shards}.jsonl.gz"
-)
+NAMES_TO_CORPORA: Dict[str, str] = {
+    "Abs": ["Abs"],
+    "C": ["C"],
+    "medical": ["medical"],
+    _ALL: ["Abs", "C", "medical"],
+    "pubmed": ["Abs", "C"],
+}
 
 
 # TODO: rename this dataset - MedicalTextDataset?
@@ -66,7 +70,7 @@ class PubMed(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name)
-        for name in list(_N_SHARDS_PER_SPLIT_PUBMED) + [_ALL]
+        for name in NAMES_TO_CORPORA.keys()
     ]
 
     def _info(self):
@@ -80,13 +84,11 @@ class PubMed(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_urls: Dict[str, List[str]] = defaultdict(list)
-
-        # Add the sharded PubMed
-        for name, shard_info in _N_SHARDS_PER_SPLIT_PUBMED.items():
+        for corpus in NAMES_TO_CORPORA[self.config.name]:
             for split, n_shards in shard_info.items():
                 data_urls[split].extend(
                     [
-                        _DATA_URL_PUBMED.format(
+                        DATA_URL_BY_CORPUS[name].format(
                             name=name,
                             split=split,
                             index=index + 1,
@@ -96,27 +98,11 @@ class PubMed(datasets.GeneratorBasedBuilder):
                     ]
                 )
 
-        # Add the sharded plain medical text
-        for split, n_shards in _N_SHARDS_PER_SPLIT_MEDICAL_TEXT.items():
-            data_urls[split].extend(
-                [
-                    _DATA_URL_MEDICAL_TEXT.format(
-                        split=split,
-                        index=index + 1,
-                        n_shards=n_shards,
-                    )
-                    for index in range(n_shards)
-                ]
-            )
-
         # TODO: is random.shuffle good enough to ensure we're interleaving data from different data sources?
-        random.shuffle(data_urls["train"])
-        random.shuffle(data_urls["val"])
-
-        assert len(data_urls["train"]) == 128 * 3, f"Expected {128 * 3} files, but got {len(data_urls['train'])}" \
-                                                   f"\n{data_urls['train']}"
-        assert len(data_urls["val"]) == 8 * 3, f"Expected {8 * 3} files, but got {len(data_urls['val'])}" \
-                                               f"\n{data_urls['val']}"
+        # pretty sure no, so need to revisit
+        gen = Random(0)
+        gen.shuffle(data_urls["train"])
+        gen.shuffle(data_urls["val"])
 
         return [
             datasets.SplitGenerator(

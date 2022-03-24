@@ -43,9 +43,10 @@ def _split_dict_fn(batch: Batch, n_microbatches: int) -> List[Batch]:
 
 @dataclass
 class PubMedDatasetHparams(DatasetHparams):
-    """Builds a DataSpec for the Pubmed (Colossal Cleaned CommonCrawl) dataset.
+    """Builds a DataSpec for the Pubmed dataset.
 
     Parameters:
+        name (str): What name (subset) for the dataset to build. (Default: `all`)
         split (str): What split of the dataset to use. Either `train` or `validation`.
         num_samples (int): The number of post-processed token samples, used to set epoch size of the
             :class:`torch.utils.data.IterableDataset`. Default: ``None``.
@@ -65,6 +66,7 @@ class PubMedDatasetHparams(DatasetHparams):
         A :class:`~composer.core.DataSpec` object
     """
 
+    name: str = hp.optional("What name (subset) for the dataset to build. (Default: `all`)", default="all")
     split: str = hp.optional("What split of the dataset to use. Either `train` or `validation`.", default=None)
     num_samples: int = hp.optional(
         "The number of post-processed token samples, used to set epoch size of the IterableDataset.", default=None)
@@ -102,6 +104,9 @@ class PubMedDatasetHparams(DatasetHparams):
     )
 
     def validate(self):
+        # TODO: get these from the dataset
+        if self.name not in ["all", "Abs", "C", "pubmed", "medical"]:
+            raise ValueError(f"Unknown name: '{self.name}'")
         if self.split not in ["train", "validation"]:
             raise ValueError(f"Unknown split: '{self.split}'")
         if self.num_samples is None or self.num_samples <= 0:
@@ -128,6 +133,7 @@ class PubMedDatasetHparams(DatasetHparams):
 
         # Get Pubmed dataset
         pubmed_dataset = PubmedDataset(
+            name=self.name,
             split=self.split,
             num_samples=self.num_samples,
             tokenizer_name=self.tokenizer_name,
@@ -179,6 +185,7 @@ class PubmedDataset(IterableDataset):
     """
 
     def __init__(self,
+                 name,
                  split,
                  num_samples,
                  tokenizer_name,
@@ -194,7 +201,6 @@ class PubmedDataset(IterableDataset):
             raise ImportError('HuggingFace transformers and datasets are not installed. '
                               'Please install with `pip install composer[nlp]`')
 
-        self.split = split
         self.num_samples = num_samples
         self.tokenizer_name = tokenizer_name
         self.max_seq_len = max_seq_len
@@ -202,27 +208,6 @@ class PubmedDataset(IterableDataset):
         self.shuffle = shuffle
         self.shuffle_buffer_size = shuffle_buffer_size
         self.seed = seed
-
-        # Metadata: PubMed (abstract + full document) + plain medical text
-        pubmed_metadata = {
-            "train": {
-                "num_shards": 128 + 128 + 128,
-                "approx_samples_per_shard": 120000,
-            },
-            "validation": {
-                "num_shards": 8 + 8 + 8,
-                "approx_samples_per_shard": 3700,
-            },
-        }
-        if self.split in pubmed_metadata:
-            self.num_shards = pubmed_metadata[self.split]["num_shards"]
-            self.approx_samples_per_shard = pubmed_metadata[self.split][
-                "approx_samples_per_shard"
-            ]
-        else:
-            raise ValueError(
-                f"Unknown split={self.split}, expected one of {list(pubmed_metadata.keys())}."
-            )
 
         # Set dataset size
         self.world_size = dist.get_world_size()
@@ -236,19 +221,6 @@ class PubmedDataset(IterableDataset):
             )
             self.num_samples = new_num_samples
 
-        # Try and detect if num_samples is larger than original dataset
-        original_approx_samples = self.num_shards * self.approx_samples_per_shard
-        if self.num_samples > original_approx_samples and self.group_method == "truncate":
-            log.warning(
-                f"Num samples was set to {self.num_samples} with group_method 'truncate' but split '{split}' has only {original_approx_samples}. "
-                f"The original dataset will cycle until the new nominal length of {self.num_samples}.")
-        if self.group_method == "concat":
-            log.warning(
-                f"When using group_method 'concat', sequential token samples are concatenated and chunked into fixed-length samples of size max_seq_len={self.max_seq_len}. "
-                f"In general we cannot detect ahead-of-time if your setting of num_samples={self.num_samples} will be larger than the original dataset, "
-                f"but if it is larger, the original dataset will cycle until the new nominal length of {self.num_samples}."
-            )
-
         # Build tokenizer
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
         if self.tokenizer.pad_token is None:
@@ -257,7 +229,7 @@ class PubmedDataset(IterableDataset):
 
         # Load and shard dataset
         text_dataset = datasets.load_dataset(
-            path="scripts/pubmed.py", name="all", split=split, streaming=True
+            path="scripts/pubmed.py", name=name, split=split, streaming=True
         )
         text_dataset = self._shard_dataset(text_dataset)
         if not isinstance(text_dataset, datasets.IterableDataset):
