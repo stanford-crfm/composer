@@ -67,7 +67,7 @@ optimizer:
     weight_decay: 0.1
 schedulers:
   - linear_decay_with_warmup:
-      t_warmup: 0.01dur
+      t_warmup: 10000ba #0.01dur
 loggers:
   - tqdm: {}
 max_duration: 400000ba
