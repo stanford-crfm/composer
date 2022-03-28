@@ -31,7 +31,7 @@ parameters:  # Any parameter overrides you want to use IN EVERY RUN should be sp
   ##############################
   # Saving model checkpoints to WandB
   save_folder: checkpoints
-  save_interval: 10000ba
+  save_interval: 20000ba
   loggers:
     - wandb:
         log_artifacts: true
