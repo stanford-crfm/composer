@@ -85,11 +85,12 @@ class PubMed(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         data_urls: Dict[str, List[str]] = defaultdict(list)
         for corpus in NAMES_TO_CORPORA[self.config.name]:
+            shard_info = N_SHARDS_PER_CORPUS_PER_SPLIT_PUBMED[corpus]
             for split, n_shards in shard_info.items():
                 data_urls[split].extend(
                     [
-                        DATA_URL_BY_CORPUS[name].format(
-                            name=name,
+                        DATA_URL_BY_CORPUS[corpus].format(
+                            name=corpus,
                             split=split,
                             index=index + 1,
                             n_shards=n_shards,
