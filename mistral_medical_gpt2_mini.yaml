@@ -35,7 +35,7 @@ parameters:  # Any parameter overrides you want to use IN EVERY RUN should be sp
   loggers:
     - wandb:
         log_artifacts: true
-        entity: stanford-crfm
+        entity: stanford-mercury
         project: mosaic-gpt2
   ##############################
   callbacks:
