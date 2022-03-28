@@ -1,6 +1,7 @@
 # Composer configuration for Medical GPT-2 (125M)
 train_dataset:
   pubmed:
+    name: pubmed
     split: train
     num_samples: 33037301
     max_seq_len: 1024
@@ -10,6 +11,7 @@ train_dataset:
     shuffle: true
 val_dataset:
   pubmed:
+    name: pubmed
     split: validation
     num_samples: 63954
     max_seq_len: 1024
@@ -59,7 +61,7 @@ model:
       scale_attn_by_inverse_layer_idx: true
 optimizer:
   adamw:
-    lr: 3.0e-4
+    lr: 1.0e-3
     betas:
       - 0.9
       - 0.999
@@ -67,12 +69,10 @@ optimizer:
     weight_decay: 0.1
 schedulers:
   - linear_decay_with_warmup:
-      t_warmup: 10000ba #0.01dur
-loggers:
-  - tqdm: {}
+      t_warmup: 0.01dur
 max_duration: 400000ba
 train_batch_size: 512 # 0.5e6 tok ~= 256[bs] * 2048[msl]
-grad_accum: 8 # 512[bs] / 8[devices] / 4[per_gpu_microbatch_size] = 16[ga], assuming 8xA100-40GB
+grad_accum: 1 # 512[bs] / 8[devices] / 8[per_gpu_microbatch_size] = 16[ga], assuming 8xA100-40GB
 eval_batch_size: 32 # 32[bs] / 8[devices] = 4[per_gpu_microbatch_size], assuming 8xA100-40GB
 seed: 17
 device:

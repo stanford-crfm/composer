@@ -67,9 +67,7 @@ optimizer:
     weight_decay: 0.1
 schedulers:
   - linear_decay_with_warmup:
-      t_warmup: 10000ba #0.01dur
-loggers:
-  - tqdm: {}
+      t_warmup: 0.01dur
 max_duration: 400000ba
 train_batch_size: 512 # 0.5e6 tok ~= 256[bs] * 2048[msl]
 grad_accum: 8 # 512[bs] / 8[devices] / 8[per_gpu_microbatch_size] = 16[ga], assuming 8xA100-40GB
