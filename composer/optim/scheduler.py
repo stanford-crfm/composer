@@ -36,7 +36,7 @@ __all__ = [
     "ComposerScheduler", "compile_composer_scheduler", "StepScheduler", "MultiStepScheduler", "ConstantScheduler",
     "LinearScheduler", "ExponentialScheduler", "CosineAnnealingScheduler", "CosineAnnealingWarmRestartsScheduler",
     "PolynomialScheduler", "MultiStepWithWarmupScheduler", "LinearWithWarmupScheduler",
-    "CosineAnnealingWithWarmupScheduler"
+    "LinearWithLogarithmicWarmupScheduler", "CosineAnnealingWithWarmupScheduler"
 ]
 
 
@@ -338,6 +338,7 @@ class LinearScheduler(ComposerScheduler):
         return current_factor
 
 
+
 class ExponentialScheduler(ComposerScheduler):
     r"""Decays the learning rate exponentially.
 
@@ -631,6 +632,94 @@ class LinearWithWarmupScheduler(ComposerScheduler):
         current_factor = self.alpha_i + frac_of_total * (self.alpha_f - self.alpha_i)
 
         return current_factor
+
+
+class LinearWithLogarithmicWarmupScheduler(ComposerScheduler):
+    r"""Adjusts the learning rate linearly, with an initial warmup based on DeepSpeed's logarithmic warmup.
+
+    .. seealso::
+        This scheduler is based on :class:`~.LinearSchedulerWithWarmup`, but with logarithmic warmup based on DeepSpeeed.
+
+    Linearly adjusts the learning rate multiplier from ``alpha_i`` to ``alpha_f`` over ``t_{max}`` time.
+
+    Specifically, the learning rate multiplier :math:`\alpha` can be expressed as:
+
+    .. math::
+        \alpha(t) = \begin{cases}
+            t / t_{warmup}, & \text{if } t < t_{warmup} \\
+            \alpha_i + (alpha_f - \alpha_i) \times \tau_w & \text{otherwise}
+        \end{cases}
+
+    Given :math:`\tau_w`, the fraction of post-warmup time elpased (clipped to the interval :math:`[0, 1]`), as:
+
+    .. math::
+        \tau_w = (t - t_{warmup}) / t_{max}
+
+    Where :math:`t_{warmup}` represents the warmup time, :math:`\alpha_i` represents the initial learning rate multiplier,
+    and :math:`\alpha_f` represents the learning rate multiplier to decay to, and :math:`t_{max}` represents the duration
+    of this scheduler.
+
+    .. warning::
+        Initial warmup time is **not** scaled according to any provided scale schedule ratio! However, the duration of
+        the scheduler is still scaled accordingly. To achieve this, after warmup, the scheduler's "pace" will be
+        slightly distorted from what would otherwise be expected.
+
+    Args:
+        t_warmup (str or Time): Warmup time.
+        alpha_i (float): Initial learning rate multiplier. Default = ``1.0``.
+        alpha_f (float): Final learning rate multiplier. Default = ``0.0``.
+        t_max (str or Time): The duration of this scheduler. Default = ``"1dur"``.
+    """
+
+    def __init__(self,
+                 t_warmup: Union[str, Time],
+                 alpha_i: float = 1.0,
+                 alpha_f: float = 0.0,
+                 t_max: Union[str, Time] = "1dur"):
+        self.t_warmup = t_warmup
+        self.alpha_i = alpha_i
+        self.alpha_f = alpha_f
+        self.t_max = t_max
+        self.warmup_scheduler = _LogarithmicScheduler(alpha_f=alpha_i, t_max=t_warmup)
+
+    def __call__(self, state: State, ssr: float = 1.0):
+        t_warmup = _convert_time(self.t_warmup, state)
+        if t_warmup.value == 0:
+            warnings.warn(
+                textwrap.dedent("""\
+                The warmup duration is 0. If you specified warmup as a fraction of total
+                training duration, take note that the warmup duration is calculated in the
+                same unit as the trainer's max_duration parameter."""))
+
+        if state.timer < t_warmup:
+            return self.warmup_scheduler(state)
+
+        t_max = _convert_time(self.t_max, state, ssr=ssr)
+        current_time = state.timer.get(t_warmup.unit)
+        frac_of_total = min(1.0, ((current_time - t_warmup) / (t_max - t_warmup)).value)
+
+        current_factor = self.alpha_i + frac_of_total * (self.alpha_f - self.alpha_i)
+
+        return current_factor
+
+
+class _LogarithmicScheduler(ComposerScheduler):
+    def __init__(self, t_max: Union[str, Time], alpha_f: float = 1.0):
+        self.t_max = t_max
+        self.alpha_f = alpha_f
+
+    def __call__(self, state: State, ssr: float = 1.0):
+        t_max = _convert_time(self.t_max, state, ssr=ssr)
+        inverse_log_warmup = 1.0 / math.log(t_max.value)
+
+        current_time = state.timer.get(t_max.unit)
+        if current_time == 0:
+            return 0.0
+        print(self.t_max, t_max, current_time, inverse_log_warmup)
+        return self.alpha_f * inverse_log_warmup * math.log(current_time)
+
+        #   frac_of_total = min(1.0, ((current_time - 0) / (t_max - 0)).value)
+
 
 
 class CosineAnnealingWithWarmupScheduler(ComposerScheduler):

@@ -31,7 +31,8 @@ from composer.models.resnet20_cifar10.resnet20_cifar10_hparams import CIFARResNe
 from composer.optim import (AdamHparams, AdamWHparams, ConstantSchedulerHparams, CosineAnnealingSchedulerHparams,
                             CosineAnnealingWarmRestartsSchedulerHparams, CosineAnnealingWithWarmupSchedulerHparams,
                             DecoupledAdamWHparams, DecoupledSGDWHparams, ExponentialSchedulerHparams,
-                            LinearSchedulerHparams, LinearWithWarmupSchedulerHparams, MultiStepSchedulerHparams,
+                            LinearSchedulerHparams, LinearWithWarmupSchedulerHparams,
+                            LinearWithLogarithmicWarmupSchedulerHparams, MultiStepSchedulerHparams,
                             MultiStepWithWarmupSchedulerHparams, OptimizerHparams, PolynomialSchedulerHparams,
                             RAdamHparams, RMSpropHparams, SchedulerHparams, SGDHparams, StepSchedulerHparams)
 from composer.profiler.profiler_hparams import JSONTraceHandlerHparams, ProfilerEventHandlerHparams
@@ -67,6 +68,7 @@ scheduler_registry = {
     "polynomial": PolynomialSchedulerHparams,
     "multistep_with_warmup": MultiStepWithWarmupSchedulerHparams,
     "linear_decay_with_warmup": LinearWithWarmupSchedulerHparams,
+    "linear_decay_with_logarithmic_warmup": LinearWithLogarithmicWarmupSchedulerHparams,
     "cosine_decay_with_warmup": CosineAnnealingWithWarmupSchedulerHparams,
 }
 

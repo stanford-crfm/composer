@@ -221,6 +221,8 @@ class PubmedDataset(IterableDataset):
             )
             self.num_samples = new_num_samples
 
+
+
         # Build tokenizer
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
         if self.tokenizer.pad_token is None:
@@ -331,8 +333,9 @@ class PubmedDataset(IterableDataset):
     def _shard_dataset(self, dataset):
         # Verify number of shards
         filepaths = dataset._ex_iterable.kwargs["filepaths"]
-        if self.num_shards != len(filepaths):
-            raise ValueError(f"Found {len(filepaths)} shards, expected {self.num_shards}")
+        # if self.num_shards != len(filepaths):
+        #     raise ValueError(f"Found {len(filepaths)} shards, expected {self.num_shards}")
+        self.num_shards = len(filepaths)
 
         # Determine how to allocate devices to shards
         devices_per_shard = 1
