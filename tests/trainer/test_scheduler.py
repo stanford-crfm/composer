@@ -1,6 +1,7 @@
 # Copyright 2021 MosaicML. All Rights Reserved.
 
 import contextlib
+import math
 from typing import List, Optional, Type, cast
 
 import pytest
@@ -13,7 +14,7 @@ from composer.models.base import ComposerModel
 from composer.optim.scheduler import (ComposerScheduler, CosineAnnealingScheduler, CosineAnnealingWarmRestartsScheduler,
                                       CosineAnnealingWithWarmupScheduler, ExponentialScheduler, LinearScheduler,
                                       LinearWithWarmupScheduler, MultiStepScheduler, MultiStepWithWarmupScheduler,
-                                      PolynomialScheduler, StepScheduler)
+                                      PolynomialScheduler, StepScheduler, LinearWithLogarithmicWarmupScheduler)
 from composer.trainer.trainer import Trainer
 
 MAX_DURATION = '1000ep'
@@ -29,6 +30,11 @@ def dummy_schedulers_state(dummy_model: torch.nn.Module, dummy_train_dataloader:
         max_duration=MAX_DURATION,
         steps_per_epoch=STEPS_PER_EPOCH,
     )
+
+
+def _log_warmup(step, warmup_steps):
+    if step == 0: return 0.0
+    return math.log(step)/math.log(warmup_steps)
 
 
 @pytest.mark.parametrize("scheduler,ssr,test_times,expected_lrs", [
@@ -79,6 +85,13 @@ def dummy_schedulers_state(dummy_model: torch.nn.Module, dummy_train_dataloader:
                  ['0ba', '250000ba', '500000ba', '500500ba', '501000ba', '502000ba'], [0.0, 1.5, 3.0, 2.5, 2.0, 2.0]),
     pytest.param(LinearWithWarmupScheduler(t_warmup='0.0005dur'), 1.0, ['0ba', '250ba', '500ba', '499750ba'],
                  [0.0, 0.5, 1.0, 0.5]),
+    pytest.param(LinearWithLogarithmicWarmupScheduler(t_warmup='500ep'), 1.0,
+                 ['0ba', '250000ba', '500000ba', '750000ba', '1000000ba'],
+                 [0.0, _log_warmup(250000, 500000), 1.0, 0.5, 0.0]),
+    pytest.param(LinearWithLogarithmicWarmupScheduler(t_warmup='500ep', alpha_i=3.0, alpha_f=2.0, t_max='1002ep'), 0.5,
+                 ['0ba', '250000ba', '500000ba', '500500ba', '501000ba', '502000ba'], [0.0, 3 * _log_warmup(250000, 500000), 3.0, 2.5, 2.0, 2.0]),
+    pytest.param(LinearWithLogarithmicWarmupScheduler(t_warmup='0.0005dur'), 1.0, ['0ba', '250ba', '500ba', '499750ba'],
+                 [0.0, _log_warmup(250, 500), 1.0, 0.5]),
     pytest.param(CosineAnnealingWithWarmupScheduler(t_warmup='0.9dur'), 1.0,
                  ['0ba', '450000ba', '900000ba', '933333ba', '950000ba', '1000000ba'], [0.0, 0.5, 1.0, 0.75, 0.5, 0.0]),
     pytest.param(CosineAnnealingWithWarmupScheduler(t_warmup='0.9dur', alpha_f=0.5), 0.01,

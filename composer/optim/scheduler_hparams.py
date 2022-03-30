@@ -12,13 +12,14 @@ from composer.optim.scheduler import (ComposerScheduler, ConstantScheduler, Cosi
                                       CosineAnnealingWarmRestartsScheduler, CosineAnnealingWithWarmupScheduler,
                                       ExponentialScheduler, LinearScheduler, LinearWithWarmupScheduler,
                                       MultiStepScheduler, MultiStepWithWarmupScheduler, PolynomialScheduler,
-                                      StepScheduler)
+                                      StepScheduler, LinearWithLogarithmicWarmupScheduler)
 
 __all__ = [
     "SchedulerHparams", "StepSchedulerHparams", "MultiStepSchedulerHparams", "ConstantSchedulerHparams",
     "LinearSchedulerHparams", "ExponentialSchedulerHparams", "CosineAnnealingSchedulerHparams",
     "CosineAnnealingWarmRestartsSchedulerHparams", "PolynomialSchedulerHparams", "MultiStepWithWarmupSchedulerHparams",
-    "LinearWithWarmupSchedulerHparams", "CosineAnnealingWithWarmupSchedulerHparams"
+    "LinearWithWarmupSchedulerHparams", "LinearWithLogarithmicWarmupSchedulerHparams",
+    "CosineAnnealingWithWarmupSchedulerHparams"
 ]
 
 
@@ -222,6 +223,27 @@ class LinearWithWarmupSchedulerHparams(SchedulerHparams):
     t_max: str = hp.optional(default="1dur", doc="Duration of this scheduler.")
 
     _scheduler_cls = LinearWithWarmupScheduler
+
+
+@dataclass
+class LinearWithLogarithmicWarmupSchedulerHparams(SchedulerHparams):
+    """Hyperparameters for the :class:`~.LinearWithWarmupScheduler` scheduler.
+
+    See :class:`~.LinearWithWarmupScheduler` for documentation.
+
+    Args:
+        t_warmup (str): See :class:`~.LinearWithWarmupScheduler`.
+        alpha_i (float, optional): See :class:`~.LinearWithWarmupScheduler`.
+        alpha_f (float, optional): See :class:`~.LinearWithWarmupScheduler`.
+        t_max (str, optional): See :class:`~.LinearWithWarmupScheduler`.
+    """
+
+    t_warmup: str = hp.required(doc="Warmup time.")
+    alpha_i: float = hp.optional("Initial learning rate multiplier.", default=1.0)
+    alpha_f: float = hp.optional("Final learning rate multiplier.", default=0.0)
+    t_max: str = hp.optional(default="1dur", doc="Duration of this scheduler.")
+
+    _scheduler_cls = LinearWithLogarithmicWarmupScheduler
 
 
 @dataclass
