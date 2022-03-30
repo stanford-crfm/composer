@@ -9,6 +9,7 @@ train_dataset:
     group_method: concat
     seed: 17
     shuffle: true
+    shuffle_buffer_size: 10000000
 val_dataset:
   pubmed:
     name: pubmed

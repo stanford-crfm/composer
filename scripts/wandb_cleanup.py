@@ -47,9 +47,11 @@ api = wandb.Api(overrides={"project": PROJECT, "entity": ENTITY})
 for run in api.runs():
     files = sorted([f for f in run.logged_artifacts()], key=lambda f: f.updated_at)
     print("Total files:", len(files))
+    if not len(files):
+        continue
     print("Last file:", files[-1].name)
     print("Last file date:", files[-1].updated_at)
-    for f in files[:-1]:
+    for f in files:
         # with debug_requests():
             if ".tar" in f.name:
                 try:
