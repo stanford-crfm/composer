@@ -1,5 +1,6 @@
 import yahp as hp
 import composer.sprucfluo as sprucfluo
+from composer.core.types import Batch
 
 from torchdata.datapipes.iter.util.samplemultiplexer import SampleMultiplexerDataPipe
 
