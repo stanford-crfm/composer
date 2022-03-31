@@ -6,6 +6,8 @@ import functools
 
 import torch.utils.data.dataset
 import yahp as hp
+from torch.utils.data.datapipes.iter.combining import MultiplexerIterDataPipe
+
 import composer.sprucfluo as sprucfluo
 
 from composer.core.data_spec import DataSpec
@@ -52,7 +54,7 @@ class SprucfluoDatasetSpecHparams(hp.Hparams):
         pass
 
     def initialize_object(self):
-        return sprucfluo.load_corpus(self.urls, **self.extra_fsspec_args)
+        return self
 
 
 @dataclass
@@ -69,15 +71,20 @@ class SprucfluoDatasetHparams(DatasetHparams):
     }
     datasets: List[SprucfluoDatasetSpecHparams] = hp.optional("list of SprucfluoDatasetSpec",
                                                               default_factory=lambda: [])
-    weights: Optional[Dict[str, float]] = hp.optional("dict of [str, float] for weights", default=None)
+    weights: Optional[Dict[str, float]] = hp.optional("dict of [str, float] for weights. If None, then a strict "
+                                                      "alternation is used.", default=None)
 
-    num_samples: int = hp.optional(
-        "The number of post-processed token samples, used to set epoch size of the IterableDataset.", default=None)
+    num_samples: Optional[int] = hp.optional(
+        "The number of post-processed token samples, used to set epoch size of the IterableDataset. Can be none for validation sets", default=None)
     tokenizer_name: str = hp.optional(
         "The name of the HuggingFace tokenizer to preprocess text with.", default=None
     )
     max_seq_len: int = hp.optional(
         "The max sequence length of each token sample.", default=1024
+    )
+    cycle: bool = hp.optional(
+        "Whether to cycle the dataset. This is useful for training, where the dataset is used for multiple epochs.",
+        default=True,
     )
     shuffle: bool = hp.optional(
         "Whether to shuffle the samples in the dataset. Currently, shards are assigned and consumed with deterministic "
@@ -118,11 +125,18 @@ class SprucfluoDatasetHparams(DatasetHparams):
             log.warning("Sprucfluo Dataset not compatible with num_workers > 1. Overwriting value to num_workers=1")
             dataloader_hparams.num_workers = 1
 
-        datasets = {d.name: d.initialize_object() for d in self.datasets}
+        def load_dataset(params: SprucfluoDatasetSpecHparams):
+            if params.extra_fsspec_args is None:
+                params.extra_fsspec_args = {}
+
+            return sprucfluo.load_corpus(params.urls, cycle=self.cycle, json_text_key=params.json_text_key,
+                                         extra_fsspec_args=params.extra_fsspec_args)
+
+        datasets = {d.name: load_dataset(d) for d in self.datasets}
 
         world_size = dist.get_world_size()
         num_samples_per_device = self.num_samples // world_size
-        if self.num_samples % world_size != 0:
+        if self.num_samples and self.num_samples % world_size != 0:
             new_num_samples = num_samples_per_device * world_size
             log.warning(
                 f"Num samples will be truncated from {self.num_samples}->{new_num_samples} to maintain divisibility "
@@ -136,24 +150,24 @@ class SprucfluoDatasetHparams(DatasetHparams):
             # Some tokenizers (e.g. GPT2 tokenizer) have no padding token which causes bugs
             tokenizer.pad_token = tokenizer.eos_token
 
-        process_fun = functools.partial(sprucfluo.tokenize_and_group_texts, tokenizer=tokenizer,
-                                        seq_len=self.max_seq_len)
+        tokenize = functools.partial(sprucfluo.tokenize_and_group_texts, tokenizer=tokenizer, seq_len=self.max_seq_len)
 
-        datasets = {k: dataset.then(process_fun) for k, dataset in datasets.items()}
+        datasets = {k: dataset.then(tokenize) for k, dataset in datasets.items()}
 
         if len(datasets) == 1:
             dataset = next(iter(datasets.values()))
+
+            if self.shuffle:
+                dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size)
         else:
-            weights = self.weights
-            if weights is None:
-                weights = {d.name: 1.0 for d in self.datasets}
-            weights = {datasets[d.name]: weights[d.name] for d in self.datasets if weights[d.name] > 0}
-            dataset = SampleMultiplexerDataPipe(weights, seed=self.seed)
+            if self.weights is None:
+                dataset = MultiplexerIterDataPipe(*datasets.values())
+            else:
+                weights = {datasets[d.name]: self.weights[d.name] for d in self.datasets if self.weights[d.name] > 0}
+                dataset = SampleMultiplexerDataPipe(weights, seed=self.seed)
 
-        if self.shuffle:
-            dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size)
-
-        dataset = _AssumeLenDataset(dataset, num_samples_per_device)
+        if self.num_samples:
+            dataset = _AssumeLenDataset(dataset, self.num_samples)
 
         # Get collate_fn
         collate_fn = transformers.DataCollatorForLanguageModeling(

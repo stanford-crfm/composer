@@ -10,13 +10,14 @@ train_dataset:
           name: pubmedC
           urls:
             - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
-#    weights:
-#      pubmedAbs: 0.5
-#      pubmedC: 0.5
+    weights:
+      pubmedAbs: 0.5
+      pubmedC: 0.5
     num_samples: 33037301
     max_seq_len: 1024
     tokenizer_name: gpt2
     seed: 17
+    cycle: true
     shuffle: true
     shuffle_buffer_size: 50000
 val_dataset:
@@ -30,8 +31,7 @@ val_dataset:
           name: pubmedC
           urls:
             - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_val.{1..8}-of-8.jsonl.gz"
-    # TODO:
-    num_samples: 63954
+    cycle: false
     max_seq_len: 1024
     tokenizer_name: gpt2
     seed: 17
