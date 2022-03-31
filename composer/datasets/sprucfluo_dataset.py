@@ -1,4 +1,6 @@
-from typing import List, Union, Any, Dict, Optional
+import functools
+import logging
+from typing import List, Any, Dict, Optional
 from dataclasses import dataclass
 import functools
 
@@ -13,6 +15,10 @@ from composer.datasets.hparams import DatasetHparams
 from composer.utils import dist
 
 from torchdata.datapipes.iter.util.samplemultiplexer import SampleMultiplexerDataPipe
+
+from composer.utils import dist
+
+log = logging.getLogger(__name__)
 
 
 def _split_dict_fn(batch: Batch, n_microbatches: int) -> List[Batch]:
@@ -96,7 +102,8 @@ class SprucfluoDatasetHparams(DatasetHparams):
             set(d.name for d in self.datasets)), "datasets must have unique names"
 
         if self.weights is not None:
-            assert len(self.weights) == len(self.datasets), "weights must be a dict of [str, float] for weights"
+            assert len(self.weights) == len(self.datasets), "weights must be a dict of [str, float] for weights but " \
+                                                            "got {} for {}".format(self.weights, self.datasets)
             for dataset in self.datasets:
                 assert dataset.name in self.weights, f"{dataset.name} not in weights"
 
@@ -118,7 +125,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
         if self.num_samples % world_size != 0:
             new_num_samples = num_samples_per_device * world_size
             log.warning(
-                f"Num samples will be truncated from {num_samples}->{new_num_samples} to maintain divisibility "
+                f"Num samples will be truncated from {self.num_samples}->{new_num_samples} to maintain divisibility "
                 f"across {world_size} devices."
             )
             self.num_samples = new_num_samples
