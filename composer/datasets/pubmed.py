@@ -105,7 +105,7 @@ class PubMedDatasetHparams(DatasetHparams):
 
     def validate(self):
         # TODO: get these from the dataset
-        if self.name not in ["all", "Abs", "C", "pubmed", "medical"]:
+        if self.name not in ["all", "Abs", "C", "pubmed", "medical", "randomized", "pubmed_randomized"]:
             raise ValueError(f"Unknown name: '{self.name}'")
         if self.split not in ["train", "validation"]:
             raise ValueError(f"Unknown split: '{self.split}'")
