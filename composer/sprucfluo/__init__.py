@@ -1,15 +1,14 @@
-import json
-from typing import Callable, TypeVar, List, Union
+from typing import TypeVar, List, Union, Optional, Any
 
-from fsspec import get_fs_token_paths
+from braceexpand import braceexpand
 from torch.utils.data import IterDataPipe
 from torchdata.datapipes.iter import IterableWrapper
 
-from braceexpand import braceexpand
 from .fancy_files import FancyFSSpecFileOpenerIterDataPipe
 from .hf_dataset import HFDatasetIterPipe
-from .text import concatenate_and_group_texts, tokenize_and_group_texts, read_lm_text_file
+from .looping import CycleDataPipe
 from .sharding import ShardByNodeDataPipe
+from .text import concatenate_and_group_texts, tokenize_and_group_texts, read_lm_text_file
 
 _T = TypeVar("_T", contravariant=True)
 _U = TypeVar("_U", covariant=True)
@@ -28,14 +27,21 @@ def expand_paths(paths: Union[str, List[str]]) -> IterDataPipe[str]:
 
 def load_corpus(paths: Union[str, List[str]],
                 shard_by_node: bool = True,
+                cycle: bool = False,
                 json_text_key: str = "text",
-                **fsspec_args) -> IterDataPipe[str]:
+                extra_fsspec_args: Optional[dict[str, Any]] = None) -> IterDataPipe[str]:
+    if extra_fsspec_args is None:
+        extra_fsspec_args = {}
     paths = expand_paths(paths)
+
+    if cycle:
+        paths = paths.cycle()
+
     if shard_by_node:
         paths = paths.shard_by_node()
 
-    return paths\
-        .open_file_by_fsspec_fancy(mode="r", compression="infer", **fsspec_args) \
+    return paths \
+        .open_file_by_fsspec_fancy(mode="r", compression="infer", **extra_fsspec_args) \
         .flatmap(lambda name_stream: read_lm_text_file(name_stream[0], name_stream[1], json_text_key))
 
 
@@ -62,6 +68,7 @@ __all__ = [
     'read_lm_text_file',
     'tokenize_and_group_texts',
     'ShardByNodeDataPipe',
+    'CycleDataPipe',
 ]
 
 init()
