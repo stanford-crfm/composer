@@ -14,7 +14,6 @@ from composer.datasets.imagenet import (Imagenet1kWebDatasetHparams, ImagenetDat
 from composer.datasets.lm_datasets import LMDatasetHparams
 from composer.datasets.mnist import MNISTDatasetHparams, MNISTWebDatasetHparams
 from composer.datasets.pubmed import PubMedDatasetHparams
-from composer.datasets.pubmed_randomized import PubmedRandomizedDatasetHparams
 
 registry = {
     "ade20k": ADE20kDatasetHparams,
@@ -27,7 +26,6 @@ registry = {
     "coco": COCODatasetHparams,
     "c4": C4DatasetHparams,
     "pubmed": PubMedDatasetHparams,
-    "pubmed_randomized": PubmedRandomizedDatasetHparams,
     'wds_mnist': MNISTWebDatasetHparams,
     'wds_cifar10': CIFAR10WebDatasetHparams,
     'wds_cifar20': CIFAR20WebDatasetHparams,
