@@ -7,7 +7,7 @@
 #    mistral_medical_gpt2_125m.yaml
 #    mistral_medical_gpt2_350m.yaml
 
-name: mistral-medical-gpt2-11m # Name of the sweep - it'll be used in run names
+name: mistral-medical-gpt2-11m_randomized # Name of the sweep - it'll be used in run names
 project: mosaic-gpt2  # Name of the Weights and Biases project to use
 image: mosaicml/pytorch  # Name of the docker image to use
 git_repo: https://github.com/stanford-crfm/composer  # Name of the git repo to clone - can be full URL or path under github.com
