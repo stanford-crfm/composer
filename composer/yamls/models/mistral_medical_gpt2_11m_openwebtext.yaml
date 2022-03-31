@@ -1,0 +1,97 @@
+# Composer configuration for Medical GPT-2 (125M)
+train_dataset:
+  pubmed:
+    name: openwebtext
+    split: train
+    num_samples: 33037301 # to do: get this number
+    max_seq_len: 1024
+    tokenizer_name: gpt2
+    group_method: concat
+    seed: 17
+    shuffle: true
+    shuffle_buffer_size: 10000000
+val_dataset:
+  pubmed:
+    name: openwebtext
+    split: validation
+    num_samples: 63954 # to do: get this number
+    max_seq_len: 1024
+    tokenizer_name: gpt2
+    group_method: concat
+    seed: 17
+    shuffle: false
+    drop_last: false
+model:
+  gpt2:
+    use_pretrained: false
+    tokenizer_name: gpt2
+    model_config:
+      activation_function: gelu_new
+      architectures:
+        - GPT2LMHeadModel
+      attn_pdrop: 0.1
+      bos_token_id: 50256
+      embd_pdrop: 0.1
+      eos_token_id: 50256
+      initializer_range: 0.02
+      layer_norm_epsilon: 1.0e-05
+      model_type: gpt2
+      n_ctx: 1024
+      n_embd: 256
+      n_head: 4
+      # n_inner: 3072
+      n_inner: null # mistral change
+      n_layer: 4
+      n_positions: 1024
+      resid_pdrop: 0.1
+      scale_attn_weights: true
+      summary_activation: null
+      summary_first_dropout: 0.1
+      summary_proj_to_labels: true
+      summary_type: cls_index
+      summary_use_proj: true
+      task_specific_params:
+        text-generation:
+          do_sample: true
+          max_length: 50
+      transformers_version: 4.16.2
+      use_cache: true
+      vocab_size: 50257
+      # core mistral changes:
+      reorder_and_upcast_attn: true
+      scale_attn_by_inverse_layer_idx: true
+optimizer:
+  adamw:
+    lr: 1.0e-3
+    betas:
+      - 0.9
+      - 0.999
+    eps: 1.0e-08
+    weight_decay: 0.1
+schedulers:
+  - linear_decay_with_logarithmic_warmup:
+      t_warmup: 0.01dur
+max_duration: 400000ba
+train_batch_size: 512 # 0.5e6 tok ~= 256[bs] * 2048[msl]
+grad_accum: 2 # 512[bs] / 8[devices] / 8[per_gpu_microbatch_size] = 16[ga], assuming 8xA100-40GB
+eval_batch_size: 32 # 32[bs] / 8[devices] = 4[per_gpu_microbatch_size], assuming 8xA100-40GB
+seed: 17
+device:
+  gpu: {}
+dataloader:
+  pin_memory: true
+  persistent_workers: true
+  num_workers: 1
+  timeout: 0
+  prefetch_factor: 2
+deepspeed:
+  zero_optimization:
+    stage: 0
+precision: fp16
+grad_clip_norm: 1.0
+validate_every_n_batches: 1000
+validate_every_n_epochs: 1
+callbacks:
+  loss_scale_monitor: {}
+  grad_monitor:
+    log_layer_grad_norms: true
