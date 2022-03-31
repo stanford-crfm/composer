@@ -14,6 +14,7 @@ from composer.datasets.imagenet import (Imagenet1kWebDatasetHparams, ImagenetDat
 from composer.datasets.lm_datasets import LMDatasetHparams
 from composer.datasets.mnist import MNISTDatasetHparams, MNISTWebDatasetHparams
 from composer.datasets.pubmed import PubMedDatasetHparams
+from composer.datasets.sprucfluo_dataset import SprucfluoDatasetHparams
 
 registry = {
     "ade20k": ADE20kDatasetHparams,
@@ -26,6 +27,7 @@ registry = {
     "coco": COCODatasetHparams,
     "c4": C4DatasetHparams,
     "pubmed": PubMedDatasetHparams,
+    "sprucfluo": SprucfluoDatasetHparams,
     'wds_mnist': MNISTWebDatasetHparams,
     'wds_cifar10': CIFAR10WebDatasetHparams,
     'wds_cifar20': CIFAR20WebDatasetHparams,
