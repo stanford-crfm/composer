@@ -135,14 +135,15 @@ class SprucfluoDatasetHparams(DatasetHparams):
         datasets = {d.name: load_dataset(d) for d in self.datasets}
 
         world_size = dist.get_world_size()
-        num_samples_per_device = self.num_samples // world_size
-        if self.num_samples and self.num_samples % world_size != 0:
-            new_num_samples = num_samples_per_device * world_size
-            log.warning(
-                f"Num samples will be truncated from {self.num_samples}->{new_num_samples} to maintain divisibility "
-                f"across {world_size} devices."
-            )
-            self.num_samples = new_num_samples
+        if self.num_samples:
+            num_samples_per_device = self.num_samples // world_size
+            if self.num_samples % world_size != 0:
+                new_num_samples = num_samples_per_device * world_size
+                log.warning(
+                    f"Num samples will be truncated from {self.num_samples}->{new_num_samples} to maintain divisibility "
+                    f"across {world_size} devices."
+                )
+                self.num_samples = new_num_samples
 
         # Build tokenizer
         tokenizer = transformers.AutoTokenizer.from_pretrained(self.tokenizer_name)
