@@ -14,7 +14,6 @@ from composer.core.data_spec import DataSpec
 from composer.core.types import Batch
 from composer.datasets.dataloader import DataLoaderHparams
 from composer.datasets.hparams import DatasetHparams
-from composer.utils import dist
 
 from torchdata.datapipes.iter.util.samplemultiplexer import SampleMultiplexerDataPipe
 
@@ -66,9 +65,9 @@ class SprucfluoDatasetHparams(DatasetHparams):
             - datasets: List of SprucfluoDatasetSpecHparams
             - weights: dict of [str, float] for weights (optional)
     """
-    hparams_registry = {  # type: ignore
-        "datasets": {"dataset": SprucfluoDatasetSpecHparams},
-    }
+    # hparams_registry = {  # type: ignore
+    #     "datasets": {"dataset": SprucfluoDatasetSpecHparams},
+    # }
     datasets: List[SprucfluoDatasetSpecHparams] = hp.optional("list of SprucfluoDatasetSpec",
                                                               default_factory=lambda: [])
     weights: Optional[Dict[str, float]] = hp.optional("dict of [str, float] for weights. If None, then a strict "
