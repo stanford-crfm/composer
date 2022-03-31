@@ -15,7 +15,6 @@ from composer.core.types import Batch
 from composer.datasets.dataloader import DataLoaderHparams
 from composer.datasets.hparams import DatasetHparams
 from composer.utils import dist
-
 log = logging.getLogger(__name__)
 
 __all__ = ["PubmedDataset", "PubMedDatasetHparams"]
