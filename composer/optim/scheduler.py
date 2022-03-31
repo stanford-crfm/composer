@@ -715,7 +715,6 @@ class _LogarithmicScheduler(ComposerScheduler):
         current_time = state.timer.get(t_max.unit)
         if current_time == 0:
             return 0.0
-        print(self.t_max, t_max, current_time, inverse_log_warmup)
         return self.alpha_f * inverse_log_warmup * math.log(current_time)
 
         #   frac_of_total = min(1.0, ((current_time - 0) / (t_max - 0)).value)
