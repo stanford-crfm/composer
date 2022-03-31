@@ -1,6 +1,7 @@
 from typing import List, Union, Any, Dict, Optional
 from dataclasses import dataclass
 
+import torch.utils.data.dataset
 import yahp as hp
 import composer.sprucfluo as sprucfluo
 
@@ -109,13 +110,23 @@ class SprucfluoDatasetHparams(DatasetHparams):
 
       datasets = {d.name: d.initialize_object() for d in self.datasets}
 
+      world_size = dist.get_world_size()
+      num_samples_per_device = self.num_samples // world_size
+      if self.num_samples % world_size != 0:
+          new_num_samples = num_samples_per_device * world_size
+          log.warning(
+              f"Num samples will be truncated from {num_samples}->{new_num_samples} to maintain divisibility "
+              f"across {world_size} devices."
+          )
+          self.num_samples = new_num_samples
+
       # Build tokenizer
       tokenizer = transformers.AutoTokenizer.from_pretrained(self.tokenizer_name)
       if tokenizer.pad_token is None:
           # Some tokenizers (e.g. GPT2 tokenizer) have no padding token which causes bugs
           tokenizer.pad_token = tokenizer.eos_token
 
-      process_fun = functools.partial(tokenize_and_group_texts, tokenizer=tokenizer, seq_len=self.max_seq_len)
+      process_fun = functools.partial(sprucfluo.tokenize_and_group_texts, tokenizer=tokenizer, seq_len=self.max_seq_len)
 
       datasets = {k: dataset.then(process_fun) for k, dataset in datasets.items()}
 
@@ -126,10 +137,12 @@ class SprucfluoDatasetHparams(DatasetHparams):
           if weights is None:
               weights = {d.name: 1.0 for d in self.datasets}
           weights = {datasets[d.name]: weights[d.name] for d in self.datasets if weights[d.name] > 0}
-          dataset = SampleMultiplexerDataPipe(weights, seed=self.multiplex_seed)
+          dataset = SampleMultiplexerDataPipe(weights, seed=multiplex_seed)
 
       if self.shuffle:
           dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size, seed=self.seed)
+
+      dataset = _AssumeLenDataset(dataset, num_samples_per_device)
 
       # Get collate_fn
       collate_fn = transformers.DataCollatorForLanguageModeling(
@@ -147,3 +160,16 @@ class SprucfluoDatasetHparams(DatasetHparams):
           ),
           split_batch=_split_dict_fn,
       )
+
+
+class _AssumeLenDataset(torch.utils.data.dataset.IterableDataset):
+    def __init__(self, dataset, num_samples):
+        super().__init__()
+        self.dataset = dataset
+        self.num_samples = num_samples
+
+    def __len__(self):
+        return self.num_samples
+
+    def __iter__(self):
+        return iter(self.dataset)
