@@ -1,4 +1,4 @@
-from typing import List, Union, Any, Dict
+from typing import List, Union, Any, Dict, Optional
 from dataclasses import dataclass
 
 import yahp as hp
@@ -34,7 +34,7 @@ def _split_dict_fn(batch: Batch, n_microbatches: int) -> List[Batch]:
 @dataclass
 class SprucfluoDatasetSpecHparams(hp.Hparams):
     name: str = hp.required("name of the dataset")
-    urls: Union[str, List[str]] = hp.required("urls of the dataset. Supports braceexpand")
+    urls: List[str] = hp.required("urls of the dataset. Supports braceexpand")
     json_text_key: str = hp.optional("key of the json text", default="text")
     extra_fsspec_args: dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.", default_factory=lambda: {})
 
@@ -55,10 +55,10 @@ class SprucfluoDatasetHparams(DatasetHparams):
           - weights: dict of [str, float] for weights (optional)
   """
   hparams_registry = {  # type: ignore
-      "datasets": {"dataset": SprucfluoDatasetSpec},
+      "datasets": {"dataset": SprucfluoDatasetSpecHparams},
   }
   datasets: List[SprucfluoDatasetSpecHparams] = hp.optional("list of SprucfluoDatasetSpec", default_factory=lambda: [])
-  weights: Dict[str, float] = hp.optional("dict of [str, float] for weights", default=None)
+  weights: Optional[Dict[str, float]] = hp.optional("dict of [str, float] for weights", default=None)
 
   num_samples: int = hp.optional(
         "The number of post-processed token samples, used to set epoch size of the IterableDataset.", default=None)
@@ -87,7 +87,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
 
   def validate(self):
       assert len(self.datasets) > 0, "datasets must be a list of SprucfluoDatasetSpec"
-      assert len(d.name for d in self.datasets) == len(set(d.name for d in self.datasets)), "datasets must have unique names"
+      assert len(list(d.name for d in self.datasets)) == len(set(d.name for d in self.datasets)), "datasets must have unique names"
 
       if self.weights is not None:
           assert len(self.weights) == len(self.datasets), "weights must be a dict of [str, float] for weights"

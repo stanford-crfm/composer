@@ -39,7 +39,7 @@ def load_corpus(paths: Union[str, List[str]],
         .flatmap(lambda name_stream: read_lm_text_file(name_stream[0], name_stream[1], json_text_key))
 
 
-def _then_data_pipe(data_pipe: IterDataPipe[_T], fn: Callable[[IterDataPipe[_T], ...], IterDataPipe[_U]], *args, **kwargs) -> IterDataPipe[_U]:
+def _then_data_pipe(data_pipe: IterDataPipe[_T], fn, *args, **kwargs) -> IterDataPipe[_U]:
     """
     A helper function to apply a function to a data pipe. Syntax is:
     data_pipe.then(fn, *args, **kwargs)
