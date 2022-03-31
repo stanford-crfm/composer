@@ -6,10 +6,10 @@ from torch.utils.data import IterDataPipe
 from torchdata.datapipes.iter import IterableWrapper
 
 from braceexpand import braceexpand
-from sprucfluo.fancy_files import FancyFSSpecFileOpenerIterDataPipe
-from sprucfluo.hf_dataset import HFDatasetIterPipe
-from sprucfluo.text import concatenate_and_group_texts, tokenize_and_group_texts, read_lm_text_file
-from sprucfluo.sharding import ShardByNodeDataPipe
+from .fancy_files import FancyFSSpecFileOpenerIterDataPipe
+from .hf_dataset import HFDatasetIterPipe
+from .text import concatenate_and_group_texts, tokenize_and_group_texts, read_lm_text_file
+from .sharding import ShardByNodeDataPipe
 
 _T = TypeVar("_T", contravariant=True)
 _U = TypeVar("_U", covariant=True)
