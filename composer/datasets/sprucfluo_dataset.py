@@ -95,6 +95,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
               assert dataset.name in self.weights, f"{dataset.name} not in weights"
 
 
+
   def initialize_object(self, batch_size:int, dataloader_hparams: DataLoaderHparams) -> DataSpec:
       try:
           import transformers
@@ -108,7 +109,11 @@ class SprucfluoDatasetHparams(DatasetHparams):
 
       datasets = {d.name: d.initialize_object() for d in self.datasets}
 
-      tokenizer = AutoTokenizer.from_pretrained("gpt2")
+      # Build tokenizer
+      tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
+      if tokenizer.pad_token is None:
+          # Some tokenizers (e.g. GPT2 tokenizer) have no padding token which causes bugs
+          tokenizer.pad_token = self.tokenizer.eos_token
 
       process_fun = functools.partial(tokenize_and_group_texts, tokenizer=tokenizer, seq_len=self.max_seq_len)
 
