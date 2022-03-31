@@ -1,6 +1,13 @@
+from typing import List, Union, Any, Dict
+from dataclasses import dataclass
+
 import yahp as hp
 import composer.sprucfluo as sprucfluo
+
+from composer.core.data_spec import DataSpec
 from composer.core.types import Batch
+from composer.datasets.dataloader import DataLoaderHparams
+from composer.datasets.hparams import DatasetHparams
 
 from torchdata.datapipes.iter.util.samplemultiplexer import SampleMultiplexerDataPipe
 
@@ -25,16 +32,16 @@ def _split_dict_fn(batch: Batch, n_microbatches: int) -> List[Batch]:
 
 
 @dataclass
-class SprucfluoDatasetSpec(hp.Hparams):
+class SprucfluoDatasetSpecHparams(hp.Hparams):
     name: str = hp.required("name of the dataset")
     urls: Union[str, List[str]] = hp.required("urls of the dataset. Supports braceexpand")
     json_text_key: str = hp.optional("key of the json text", default="text")
-    extra_fsspec_args: dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.")
+    extra_fsspec_args: dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.", default_factory=lambda: {})
 
     def validate(self):
         pass
 
-    def initialize_object(self) -> SprucfluoDataPipe:
+    def initialize_object(self):
         return sprucfluo.load_corpus(self.urls, **self.extra_fsspec_args)
 
 
@@ -47,9 +54,11 @@ class SprucfluoDatasetHparams(DatasetHparams):
           - datasets: List of SprucfluoDatasetSpecHparams
           - weights: dict of [str, float] for weights (optional)
   """
-  datasets: List[SprucfluoDatasetSpecHparams] = hp.required("list of SprucfluoDatasetSpec")
-  weights: Dict[str, float] = hp.optional("dict of [str, float] for weights")
+  datasets: List[SprucfluoDatasetSpecHparams] = hp.optional("list of SprucfluoDatasetSpec", default_factory=lambda: [])
+  weights: Dict[str, float] = hp.optional("dict of [str, float] for weights", default=None)
 
+  num_samples: int = hp.optional(
+        "The number of post-processed token samples, used to set epoch size of the IterableDataset.", default=None)
   tokenizer_name: str = hp.optional(
       "The name of the HuggingFace tokenizer to preprocess text with.", default=None
   )

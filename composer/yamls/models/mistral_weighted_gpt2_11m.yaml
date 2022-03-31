@@ -23,13 +23,13 @@ val_dataset:
           urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_val.{1..8}-of-8.jsonl.gz"
         - name: pubmedC
           urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_val.{1..8}-of-8.jsonl.gz"
-      # TODO:
-      num_samples: 63954
-      max_seq_len: 1024
-      tokenizer_name: gpt2
-      seed: 17
-      shuffle: false
-      drop_last: false
+    # TODO:
+    num_samples: 63954
+    max_seq_len: 1024
+    tokenizer_name: gpt2
+    seed: 17
+    shuffle: false
+    drop_last: false
 model:
   gpt2:
     use_pretrained: false
