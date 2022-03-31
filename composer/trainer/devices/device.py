@@ -4,6 +4,7 @@
 
 import collections.abc
 from abc import ABC, abstractmethod
+from collections import UserDict
 from contextlib import contextmanager
 from typing import Generator, Sequence, TypeVar, Union
 
@@ -76,7 +77,7 @@ class Device(Serializable, ABC):
                     assert isinstance(x, (dict, Sequence))
                     ans.append(self.batch_to_device(x))
             return list(ans)  # always returning a list, as the original batch type might not be callable
-        if isinstance(batch, dict):  # BatchDict
+        if isinstance(batch, dict) or isinstance(batch, UserDict):  # BatchDict
             return {k: self.tensor_to_device(v) for k, v in batch.items()}
         raise TypeError(f"Unsupported type for batch: {type(batch)}")
 
