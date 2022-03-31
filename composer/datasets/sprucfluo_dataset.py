@@ -110,7 +110,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
       datasets = {d.name: d.initialize_object() for d in self.datasets}
 
       # Build tokenizer
-      tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
+      tokenizer = transformers.AutoTokenizer.from_pretrained(self.tokenizer_name)
       if tokenizer.pad_token is None:
           # Some tokenizers (e.g. GPT2 tokenizer) have no padding token which causes bugs
           tokenizer.pad_token = self.tokenizer.eos_token
