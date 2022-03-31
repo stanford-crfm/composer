@@ -6,7 +6,6 @@ from torchdata.datapipes.iter import IterableWrapper
 
 from .fancy_files import FancyFSSpecFileOpenerIterDataPipe
 from .hf_dataset import HFDatasetIterPipe
-from .looping import CycleDataPipe
 from .sharding import ShardByNodeDataPipe
 from .text import concatenate_and_group_texts, tokenize_and_group_texts, read_lm_text_file
 
@@ -68,7 +67,6 @@ __all__ = [
     'read_lm_text_file',
     'tokenize_and_group_texts',
     'ShardByNodeDataPipe',
-    'CycleDataPipe',
 ]
 
 init()
