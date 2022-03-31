@@ -9,7 +9,7 @@ from tqdm import tqdm
 from typing import List, Tuple
 
 """
-Concat dataset files, shuffle, output to final mixture files.
+Concat dataset files, randomize, output to final mixture files.
 We currently only support jsonl files.
 
 Usage:
@@ -27,7 +27,7 @@ Example usage:
 
 
 class LocalDatasetMixer:
-    """Mix and potentially shuffle local dataset files. Only works with jsonl files for now."""
+    """Mix and potentially randomize local dataset files. Only works with jsonl files for now."""
 
     def __init__(
         self,
@@ -48,7 +48,7 @@ class LocalDatasetMixer:
         self.debug: bool = debug
 
     def mix_files(self, name: str, files_list: List[str], randomize: bool = True):
-        print(files_list)
+        print(f"Mixing files: {'\n'.join(files_list)}")
         all_docs = []
         print(f"Loading files for {name}")
         for f in files_list:
