@@ -2,10 +2,12 @@
 train_dataset:
   sprucfluo:
     datasets:
-      - name: pubmedAbs
-        urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
-      - name: pubmedC
-        urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
+      - dataset:
+          name: pubmedAbs
+          urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
+      - dataset:
+          name: pubmedC
+          urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
     weights:
       pubmedAbs: 0.5
       pubmedC: 0.5
@@ -19,8 +21,10 @@ val_dataset:
   sprucfluo:
     name: pubmed
     datasets:
-        - name: pubmedAbs
+      - dataset:
+          name: pubmedAbs
           urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_val.{1..8}-of-8.jsonl.gz"
+      - dataset:
         - name: pubmedC
           urls: "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_val.{1..8}-of-8.jsonl.gz"
     # TODO:

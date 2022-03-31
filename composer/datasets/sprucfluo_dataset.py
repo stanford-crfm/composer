@@ -54,6 +54,9 @@ class SprucfluoDatasetHparams(DatasetHparams):
           - datasets: List of SprucfluoDatasetSpecHparams
           - weights: dict of [str, float] for weights (optional)
   """
+  hparams_registry = {  # type: ignore
+      "datasets": {"dataset": SprucfluoDatasetSpec},
+  }
   datasets: List[SprucfluoDatasetSpecHparams] = hp.optional("list of SprucfluoDatasetSpec", default_factory=lambda: [])
   weights: Dict[str, float] = hp.optional("dict of [str, float] for weights", default=None)
 
