@@ -10,9 +10,9 @@ train_dataset:
           name: pubmedC
           urls:
             - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
-    weights:
-      pubmedAbs: 0.5
-      pubmedC: 0.5
+#    weights:
+#      pubmedAbs: 0.5
+#      pubmedC: 0.5
     num_samples: 33037301
     max_seq_len: 1024
     tokenizer_name: gpt2
