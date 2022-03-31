@@ -34,22 +34,22 @@ _URL: str = "https://github.com/stanford-crfm/composer"
 
 _ALL: str = "all"
 N_SHARDS_PER_CORPUS_PER_SPLIT_PUBMED: Dict[str, Dict[str, int]] = {
-    "AllRandom": {"train": 128, "val": 8},
+    "Randomized": {"train": 128, "val": 8},
 }
 
 DATA_URL_BY_CORPUS: Dict[str, str] = {
-    "AllRandom": "https://storage.googleapis.com/pubmed-mosaic/pubmed-all-random-sharded/"
-           "pubmedAllRandom_{split}.{index}-of-{n_shards}.jsonl.gz"
+    "Randomized": "https://storage.googleapis.com/pubmed-mosaic/pubmed-randomized-sharded/"
+           "pubmedRandomized_{split}.{index}-of-{n_shards}.jsonl.gz"
 }
 
 NAMES_TO_CORPORA: Dict[str, str] = {
-    "AllRandom": ["AllRandom"],
-    _ALL: ["AllRandom"],
+    "Randomized": ["Randomized"],
+    _ALL: ["Randomized"],
 }
 
 
 # TODO: rename this dataset - MedicalTextDataset?
-class PubMedAllRandom(datasets.GeneratorBasedBuilder):
+class PubMedRandomized(datasets.GeneratorBasedBuilder):
     """
     PubMed dataset from The Pile + plain medical text from multiple sources:
         MedlinePlus (30MB)
