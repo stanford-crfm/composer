@@ -1,6 +1,7 @@
 import argparse
 import math
 import os
+import subprocess
 
 from tqdm import tqdm
 from typing import List, Tuple
@@ -21,7 +22,7 @@ Example usage:
     --train-files plain_medical_text/plain_medical_text_train.jsonl \
     --val-files plain_medical_text/plain_medical_text_val.jsonl 
 
-Run gzip *.jsonl after to compress.
+Use --compress option to compress files after sharding.
 """
 
 
@@ -113,6 +114,9 @@ def main():
     parser.add_argument(
         "--val-files", help="Files for the validation set", nargs="+", default=[]
     )
+    parser.add_argument(
+        "--compress", help="Compress files after sharding", action="store_true"
+    )
 
     args = parser.parse_args()
 
@@ -124,6 +128,9 @@ def main():
         val_files=args.val_files,
     )
     sharder.shard()
+    if args.compress:
+        print(f"Compressing *.jsonl files in {args.output_path}")
+        subprocess.call(f"touch {args.output_path}/*.jsonl ; gzip {args.output_path}/*.jsonl", shell=True)
     print("\nDone.")
 
 
