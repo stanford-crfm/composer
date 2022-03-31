@@ -18,7 +18,7 @@ from composer.utils import dist
 
 log = logging.getLogger(__name__)
 
-__all__ = ["PubmedRandomizedDataset", "PubMedRandomizedDatasetHparams"]
+__all__ = ["PubmedRandomizedDataset", "PubmedRandomizedDatasetHparams"]
 
 
 def _split_dict_fn(batch: Batch, n_microbatches: int) -> List[Batch]:
@@ -42,7 +42,7 @@ def _split_dict_fn(batch: Batch, n_microbatches: int) -> List[Batch]:
 
 
 @dataclass
-class PubMedRandomizedDatasetHparams(DatasetHparams):
+class PubmedRandomizedDatasetHparams(DatasetHparams):
     """Builds a DataSpec for the Pubmed dataset.
 
     Parameters:
@@ -105,7 +105,7 @@ class PubMedRandomizedDatasetHparams(DatasetHparams):
 
     def validate(self):
         # TODO: get these from the dataset
-        if self.name not in ["all", "Abs", "C", "pubmed", "medical"]:
+        if self.name not in ["all", "Randomized"]:
             raise ValueError(f"Unknown name: '{self.name}'")
         if self.split not in ["train", "validation"]:
             raise ValueError(f"Unknown split: '{self.split}'")
@@ -132,7 +132,7 @@ class PubMedRandomizedDatasetHparams(DatasetHparams):
             dataloader_hparams.num_workers = 1
 
         # Get Pubmed dataset
-        pubmed_dataset = PubmedDataset(
+        pubmed_dataset = PubmedRandomizedDataset(
             name=self.name,
             split=self.split,
             num_samples=self.num_samples,
@@ -231,7 +231,7 @@ class PubmedRandomizedDataset(IterableDataset):
 
         # Load and shard dataset
         text_dataset = datasets.load_dataset(
-            path="scripts/pubmed.py", name=name, split=split, streaming=True
+            path="scripts/pubmed_randomized.py", name=name, split=split, streaming=True
         )
         text_dataset = self._shard_dataset(text_dataset)
         if not isinstance(text_dataset, datasets.IterableDataset):
