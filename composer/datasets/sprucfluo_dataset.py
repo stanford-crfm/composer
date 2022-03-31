@@ -1,5 +1,6 @@
 from typing import List, Union, Any, Dict, Optional
 from dataclasses import dataclass
+import functools
 
 import torch.utils.data.dataset
 import yahp as hp
@@ -9,6 +10,7 @@ from composer.core.data_spec import DataSpec
 from composer.core.types import Batch
 from composer.datasets.dataloader import DataLoaderHparams
 from composer.datasets.hparams import DatasetHparams
+from composer.utils import dist
 
 from torchdata.datapipes.iter.util.samplemultiplexer import SampleMultiplexerDataPipe
 
@@ -137,10 +139,10 @@ class SprucfluoDatasetHparams(DatasetHparams):
           if weights is None:
               weights = {d.name: 1.0 for d in self.datasets}
           weights = {datasets[d.name]: weights[d.name] for d in self.datasets if weights[d.name] > 0}
-          dataset = SampleMultiplexerDataPipe(weights, seed=multiplex_seed)
+          dataset = SampleMultiplexerDataPipe(weights, seed=self.seed)
 
       if self.shuffle:
-          dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size, seed=self.seed)
+          dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size)
 
       dataset = _AssumeLenDataset(dataset, num_samples_per_device)
 
