@@ -38,6 +38,7 @@ N_SHARDS_PER_CORPUS_PER_SPLIT_PUBMED: Dict[str, Dict[str, int]] = {
     "C": {"train": 128, "val": 8},
     "randomized": {"train": 128, "val": 8},
     "medical": {"train": 128, "val": 8},
+    "openwebtext": {"train": 128, "val": 8}
 }
 
 DATA_URL_BY_CORPUS: Dict[str, str] = {
