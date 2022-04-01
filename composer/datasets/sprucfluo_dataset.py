@@ -44,7 +44,7 @@ def _split_dict_fn(batch: Batch, n_microbatches: int) -> List[Batch]:
 
 @dataclass
 class SprucfluoDatasetSpecHparams(hp.Hparams):
-    name: str = hp.required("name of the dataset")
+    # name: str = hp.required("name of the dataset")
     urls: List[str] = hp.required("urls of the dataset. Supports braceexpand")
     json_text_key: str = hp.optional("key of the json text", default="text")
     extra_fsspec_args: dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.", default_factory=lambda: {})
@@ -68,8 +68,8 @@ class SprucfluoDatasetHparams(DatasetHparams):
     # hparams_registry = {  # type: ignore
     #     "datasets": {"dataset": SprucfluoDatasetSpecHparams},
     # }
-    datasets: List[SprucfluoDatasetSpecHparams] = hp.optional("list of SprucfluoDatasetSpec",
-                                                              default_factory=lambda: [])
+    datasets: Dict[str, SprucfluoDatasetSpecHparams] = hp.optional("list of SprucfluoDatasetSpec",
+                                                              default_factory=lambda: {})
     weights: Optional[Dict[str, float]] = hp.optional("dict of [str, float] for weights. If None, then a strict "
                                                       "alternation is used.", default=None)
 
@@ -105,14 +105,12 @@ class SprucfluoDatasetHparams(DatasetHparams):
     def validate(self):
         super().validate()
         assert len(self.datasets) > 0, "datasets must be a list of SprucfluoDatasetSpec"
-        assert len(list(d.name for d in self.datasets)) == len(
-            set(d.name for d in self.datasets)), "datasets must have unique names"
 
         if self.weights is not None:
             assert len(self.weights) == len(self.datasets), "weights must be a dict of [str, float] for weights but " \
                                                             "got {} for {}".format(self.weights, self.datasets)
-            for dataset in self.datasets:
-                assert dataset.name in self.weights, f"{dataset.name} not in weights"
+            for name in self.datasets:
+                assert name in self.weights, f"{name} not in weights"
 
     def initialize_object(self, batch_size: int, dataloader_hparams: DataLoaderHparams) -> DataSpec:
         try:
@@ -126,13 +124,16 @@ class SprucfluoDatasetHparams(DatasetHparams):
             dataloader_hparams.num_workers = 1
 
         def load_dataset(params: SprucfluoDatasetSpecHparams):
+            # TODO: this shouldn't be necessary, since params should be a SprucfluoDatasetSpecHparams, but
+            # it's actually just a dict
+            params = SprucfluoDatasetSpecHparams.create(data=params, cli_args=False) # type: ignore
             if params.extra_fsspec_args is None:
                 params.extra_fsspec_args = {}
 
             return sprucfluo.load_corpus(params.urls, cycle=self.cycle, json_text_key=params.json_text_key,
                                          extra_fsspec_args=params.extra_fsspec_args)
 
-        datasets = {d.name: load_dataset(d) for d in self.datasets}
+        datasets = {name: load_dataset(d) for name, d in self.datasets.items()}
 
         world_size = dist.get_world_size()
         if self.num_samples:
@@ -164,7 +165,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
             if self.weights is None:
                 dataset = MultiplexerIterDataPipe(*datasets.values())
             else:
-                weights = {datasets[d.name]: self.weights[d.name] for d in self.datasets if self.weights[d.name] > 0}
+                weights = {datasets[d]: self.weights[d] for d in datasets if self.weights[d] > 0}
                 dataset = SampleMultiplexerDataPipe(weights, seed=self.seed)
 
         if self.num_samples:
