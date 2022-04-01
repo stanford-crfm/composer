@@ -103,6 +103,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
     )
 
     def validate(self):
+        super().validate()
         assert len(self.datasets) > 0, "datasets must be a list of SprucfluoDatasetSpec"
         assert len(list(d.name for d in self.datasets)) == len(
             set(d.name for d in self.datasets)), "datasets must have unique names"
