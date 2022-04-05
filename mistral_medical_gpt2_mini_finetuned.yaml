@@ -25,7 +25,7 @@ command: |
   pip install --user -e .[all]
   composer -n {{ parameters['_n_gpus'] }} examples/run_composer_trainer.py -f /mnt/config/parameters.yaml
 instance: r6z1-g8-a100  # Name of the instance you want to run on, e.g. r6z1-g8-a100
-models: mistral_medical_gpt2_11m  # The name of the model you want to use - should match the name of a YAML file in your local composer "models" directory unless you are fully specifying model parameters in the `parameters` section
+models: mistral_medical_gpt2_11m_finetuned  # The name of the model you want to use - should match the name of a YAML file in your local composer "models" directory unless you are fully specifying model parameters in the `parameters` section
 algorithms: []# The name(s) of the algorithm(s) you want to use - should match the name of a YAML file in your local composer "algorithms" directory unless you are fully specifying algorithms parameters in the `parameters` section
 parameters:  # Any parameter overrides you want to use IN EVERY RUN should be specified here
   ##############################
