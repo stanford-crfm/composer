@@ -24,10 +24,10 @@ val_dataset:
 model:
   gpt2:
     use_pretrained: true
-    #pretrained_model_name: dlwh/pubmed_gpt
-    #pretrained_revision: openwebtext_mini_400k
-    pretrained_model_name: stanford-crfm/alias-gpt2-small-x21
-    pretrained_revision: checkpoint-400000
+    pretrained_model_name: dlwh/pubmed_gpt
+    pretrained_revision: openwebtext_mini_400k
+    # pretrained_model_name: stanford-crfm/alias-gpt2-small-x21
+    # pretrained_revision: checkpoint-400000
     tokenizer_name: gpt2
     model_config:
       activation_function: gelu_new
