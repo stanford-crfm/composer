@@ -48,7 +48,8 @@ class LocalDatasetMixer:
         self.debug: bool = debug
 
     def mix_files(self, name: str, files_list: List[str], randomize: bool = True):
-        print(f"Mixing files: {'\n'.join(files_list)}")
+        newline = "\n"
+        print(f"Mixing files: {newline.join(files_list)}")
         all_docs = []
         print(f"Loading files for {name}")
         for f in files_list:
