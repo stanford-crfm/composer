@@ -1,8 +1,13 @@
 import argparse
 
+import os
+import shutil
+import subprocess
 import torch
 import transformers
+
 from transformers import AutoConfig, AutoTokenizer
+
 
 """
 Converts DeepSpeed-format checkpoint to Torch-format checkpoint.
@@ -55,18 +60,30 @@ def create_hf_model(config, torch_state_dict):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-checkpoint", help="Path to DeepSpeed checkpoint")
+    parser.add_argument("--wandb-id", help="Artifact url")
     parser.add_argument("--config", help="Path to Composer yaml config")
     parser.add_argument(
         "--output-dir", help="Output directory for the HF Model", default="model"
     )
 
     args = parser.parse_args()
+    if args.wandb_id:
+        work_dir = "wandb_download_tmp"
+        os.makedirs(work_dir, exist_ok=True)
+        subprocess.call(f"wandb artifact get --root {work_dir} {args.wandb_id}", shell=True)
+        shutil.unpack_archive(f"{work_dir}/{os.listdir(work_dir)[0]}", work_dir)
+        wandb_model_path = f"deepspeed/mp_rank_00_model_states.pt"
+        args.input_checkpoint = f"{work_dir}/{wandb_model_path}"
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
     state_dict = convert_checkpoint(args.input_checkpoint)
     model_name, config = extract_hf_config_from_yaml(args.config)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = create_hf_model(config, state_dict)
     model.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
+    if args.wandb_id:
+        shutil.rmtree("wandb_download_tmp")
 
     # Load HF model to verify the conversion went okay.
     try:
