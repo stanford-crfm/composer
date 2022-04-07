@@ -63,7 +63,8 @@ NAMES_TO_CORPORA: Dict[str, str] = {
     _ALL: ["Abs", "C", "medical"],
     "pubmed": ["Abs", "C"],
     "pubmed_randomized": ["randomized"],
-    "openwebtext": ["openwebtext"]
+    "openwebtext": ["openwebtext"],
+    "pubmed_plus_openweb": ["randomized", "openwebtext"]
 }
 
 
