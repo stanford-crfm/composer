@@ -3,7 +3,7 @@ train_dataset:
   pubmed:
     name: pubmed_plus_openweb
     split: train
-    num_samples: 33037301
+    num_samples: 330373010
     max_seq_len: 1024
     tokenizer_name: gpt2
     group_method: concat
