@@ -38,7 +38,8 @@ N_SHARDS_PER_CORPUS_PER_SPLIT_PUBMED: Dict[str, Dict[str, int]] = {
     "C": {"train": 128, "val": 8},
     "randomized": {"train": 128, "val": 8},
     "medical": {"train": 128, "val": 8},
-    "openwebtext": {"train": 128, "val": 8}
+    "openwebtext": {"train": 128, "val": 8},
+    "pubmed_plus_openweb": {"train": 128, "val": 8}
 }
 
 DATA_URL_BY_CORPUS: Dict[str, str] = {
@@ -53,6 +54,8 @@ DATA_URL_BY_CORPUS: Dict[str, str] = {
                "plain_medical_text_{split}.{index}-of-{n_shards}.jsonl.gz",
     "openwebtext": "https://storage.googleapis.com/pubmed-mosaic/openwebtext-sharded/"
                "openwebtext_{split}.{index}-of-{n_shards}.jsonl.gz",
+    "pubmed_plus_openweb": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
+               "pubmed_plus_openweb_{split}.{index}-of-{n_shards}.jsonl.gz"
 }
 
 NAMES_TO_CORPORA: Dict[str, str] = {
@@ -64,7 +67,7 @@ NAMES_TO_CORPORA: Dict[str, str] = {
     "pubmed": ["Abs", "C"],
     "pubmed_randomized": ["randomized"],
     "openwebtext": ["openwebtext"],
-    "pubmed_plus_openweb": ["randomized", "openwebtext"]
+    "pubmed_plus_openweb": ["pubmed_plus_openweb"]
 }
 
 
