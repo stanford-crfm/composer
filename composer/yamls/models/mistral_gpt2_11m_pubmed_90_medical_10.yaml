@@ -12,8 +12,8 @@ train_dataset:
           urls:
             - "https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/plain_medical_text_train.{1..128}-of-128.jsonl.gz"
     weights:
-      pubmedAbs: 0.45
-      pubmedC: 0.45
+      pubmedAbs: 0.171
+      pubmedC: 0.729
       medical: 0.10
     num_samples: 36708112
     max_seq_len: 1024
