@@ -282,7 +282,7 @@ prof_warmup: 1
 profiler_trace_file: null
 run_name: null
 save_folder: checkpoints
-save_interval: 20000ba
+save_interval: 2ba
 save_latest_format: latest-rank{rank}
 save_name_format: ep{epoch}-ba{batch}-rank{rank}
 save_overwrite: false
@@ -307,7 +307,7 @@ torch_prof_use_gzip: false
 torch_prof_with_flops: true
 torch_prof_with_stack: false
 torch_profiler_trace_dir: null
-train_batch_size: 512
+train_batch_size: 16
 train_dataset:
   sprucfluo:
     cycle: true
