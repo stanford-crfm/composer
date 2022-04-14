@@ -1,0 +1,341 @@
+algorithms: {}
+callbacks:
+  grad_monitor:
+    log_layer_grad_norms: true
+  loss_scale_monitor: {}
+  lr_monitor: {}
+  speed_monitor:
+    window_size: 10
+compute_training_metrics: false
+datadir: null
+dataloader:
+  num_workers: 1
+  persistent_workers: true
+  pin_memory: true
+  prefetch_factor: 2
+  timeout: 0.0
+ddp_sync_strategy: null
+deepspeed: &id001
+  steps_per_print: 1.0e+20
+  zero_optimization:
+    stage: 0
+deterministic_mode: false
+device:
+  gpu: {}
+dist_timeout: 15.0
+eval_batch_size: 32
+eval_subset_num_batches: null
+evaluators: null
+grad_accum: 2
+grad_clip_norm: 1.0
+load_chunk_size: 1048576
+load_object_store: null
+load_path_format: null
+load_progress_bar: true
+load_strict_model_weights: false
+load_weights_only: false
+log_level: INFO
+loggers:
+  wandb:
+    entity: stanford-mercury
+    extra_init_params:
+      config:
+        algorithms: {}
+        callbacks:
+          grad_monitor:
+            log_layer_grad_norms: true
+          loss_scale_monitor: {}
+          lr_monitor: {}
+          speed_monitor:
+            window_size: 10
+        compute_training_metrics: false
+        datadir: null
+        dataloader:
+          num_workers: 1
+          persistent_workers: true
+          pin_memory: true
+          prefetch_factor: 2
+          timeout: 0.0
+        ddp_sync_strategy: null
+        deepspeed: *id001
+        deterministic_mode: false
+        device:
+          gpu: {}
+        dist_timeout: 15.0
+        eval_batch_size: 32
+        eval_subset_num_batches: null
+        evaluators: null
+        grad_accum: 2
+        grad_clip_norm: 1.0
+        load_chunk_size: 1048576
+        load_object_store: null
+        load_path_format: null
+        load_progress_bar: true
+        load_strict_model_weights: false
+        load_weights_only: false
+        log_level: INFO
+        loggers:
+          wandb:
+            entity: stanford-mercury
+            extra_init_params:
+              config:
+                metadata:
+                  commit: fancy_dataset
+                  image: mosaicml/pytorch
+                  instance: r6z1-g8-a100
+                  model: mistral_weighted_gpt2_11m
+                  repo: https://github.com/stanford-crfm/composer
+                  run_type: convergence
+                  sweep: mistral-sprucfluo-gpt2-11m
+                  version: v0.4.0
+            flatten_hparams: false
+            group: null
+            log_artifacts: true
+            log_artifacts_every_n_batches: 100
+            name: mistral-sprucfluo-gpt2-11m-5d666f
+            project: mosaic-gpt2
+            rank_zero_only: true
+            tags: ''
+        max_duration: 400000ba
+        metadata:
+          commit: fancy_dataset
+          image: mosaicml/pytorch
+          instance: r6z1-g8-a100
+          model: mistral_weighted_gpt2_11m
+          repo: https://github.com/stanford-crfm/composer
+          run_type: convergence
+          sweep: mistral-sprucfluo-gpt2-11m
+          version: v0.4.0
+        model:
+          gpt2:
+            gradient_checkpointing: false
+            initializers: []
+            model_config: &id002
+              activation_function: gelu_new
+              architectures:
+              - GPT2LMHeadModel
+              attn_pdrop: 0.1
+              bos_token_id: 50256
+              embd_pdrop: 0.1
+              eos_token_id: 50256
+              initializer_range: 0.02
+              layer_norm_epsilon: 1.0e-05
+              model_type: gpt2
+              n_ctx: 1024
+              n_embd: 256
+              n_head: 4
+              n_inner: null
+              n_layer: 4
+              n_positions: 1024
+              reorder_and_upcast_attn: true
+              resid_pdrop: 0.1
+              scale_attn_by_inverse_layer_idx: true
+              scale_attn_weights: true
+              summary_activation: null
+              summary_first_dropout: 0.1
+              summary_proj_to_labels: true
+              summary_type: cls_index
+              summary_use_proj: true
+              task_specific_params:
+                text-generation:
+                  do_sample: true
+                  max_length: 50
+              transformers_version: 4.16.2
+              use_cache: true
+              vocab_size: 50257
+            num_classes: null
+            pretrained_model_name: null
+            pretrained_revision: null
+            tokenizer_name: gpt2
+            use_pretrained: false
+        optimizer:
+          adamw:
+            amsgrad: false
+            betas: &id003
+            - 0.9
+            - 0.999
+            eps: 1.0e-08
+            lr: 0.001
+            weight_decay: 0.1
+        precision: FP16
+        prof_active: 4
+        prof_event_handlers:
+          json:
+            buffering: -1
+            flush_every_n_batches: 100
+            output_directory: composer_profiler
+        prof_repeat: 1
+        prof_skip_first: 0
+        prof_wait: 0
+        prof_warmup: 1
+        profiler_trace_file: null
+        run_name: null
+        save_folder: checkpoints
+        save_interval: 20000ba
+        save_latest_format: latest-rank{rank}
+        save_name_format: ep{epoch}-ba{batch}-rank{rank}
+        save_overwrite: false
+        save_weights_only: false
+        scale_schedule_ratio: 1.0
+        schedulers:
+          linear_decay_with_logarithmic_warmup:
+            alpha_f: 0.0
+            alpha_i: 1.0
+            t_max: 1dur
+            t_warmup: 0.01dur
+        seed: 1
+        step_schedulers_every_batch: true
+        sys_prof_cpu: true
+        sys_prof_disk: false
+        sys_prof_memory: false
+        sys_prof_net: false
+        sys_prof_stats_thread_interval_seconds: 0.5
+        torch_prof_profile_memory: true
+        torch_prof_record_shapes: false
+        torch_prof_use_gzip: false
+        torch_prof_with_flops: true
+        torch_prof_with_stack: false
+        torch_profiler_trace_dir: null
+        train_batch_size: 512
+        train_dataset:
+          sprucfluo:
+            cycle: true
+            datadir: null
+            datasets: &id004
+              pubmedAbs:
+                urls:
+                - https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz
+              pubmedC:
+                urls:
+                - https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz
+            drop_last: true
+            is_train: true
+            max_seq_len: 1024
+            num_samples: 33037301
+            seed: 17
+            shuffle: true
+            shuffle_buffer_size: 50000
+            tokenizer_name: gpt2
+            weights: &id005
+              pubmedAbs: 0.5
+              pubmedC: 0.5
+        train_subset_num_batches: null
+        val_dataset:
+          sprucfluo:
+            cycle: false
+            datadir: null
+            datasets: &id006
+              pubmedAbs:
+                urls:
+                - https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_val.{1..8}-of-8.jsonl.gz
+              pubmedC:
+                urls:
+                - https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_val.{1..8}-of-8.jsonl.gz
+            drop_last: false
+            is_train: true
+            max_seq_len: 1024
+            num_samples: null
+            seed: 17
+            shuffle: false
+            shuffle_buffer_size: 10000
+            tokenizer_name: gpt2
+            weights: null
+        validate_every_n_batches: 1000
+        validate_every_n_epochs: 1
+    flatten_hparams: false
+    group: null
+    log_artifacts: true
+    log_artifacts_every_n_batches: 100
+    name: mistral-sprucfluo-gpt2-11m-5d666f
+    project: mosaic-gpt2
+    rank_zero_only: true
+    tags: ''
+max_duration: 400000ba
+model:
+  gpt2:
+    gradient_checkpointing: false
+    initializers: []
+    model_config: *id002
+    num_classes: null
+    pretrained_model_name: null
+    pretrained_revision: null
+    tokenizer_name: gpt2
+    use_pretrained: false
+optimizer:
+  adamw:
+    amsgrad: false
+    betas: *id003
+    eps: 1.0e-08
+    lr: 0.001
+    weight_decay: 0.1
+precision: FP16
+prof_active: 4
+prof_event_handlers:
+  json:
+    buffering: -1
+    flush_every_n_batches: 100
+    output_directory: composer_profiler
+prof_repeat: 1
+prof_skip_first: 0
+prof_wait: 0
+prof_warmup: 1
+profiler_trace_file: null
+run_name: null
+save_folder: checkpoints
+save_interval: 20000ba
+save_latest_format: latest-rank{rank}
+save_name_format: ep{epoch}-ba{batch}-rank{rank}
+save_overwrite: false
+save_weights_only: false
+scale_schedule_ratio: 1.0
+schedulers:
+  linear_decay_with_logarithmic_warmup:
+    alpha_f: 0.0
+    alpha_i: 1.0
+    t_max: 1dur
+    t_warmup: 0.01dur
+seed: 1
+step_schedulers_every_batch: true
+sys_prof_cpu: true
+sys_prof_disk: false
+sys_prof_memory: false
+sys_prof_net: false
+sys_prof_stats_thread_interval_seconds: 0.5
+torch_prof_profile_memory: true
+torch_prof_record_shapes: false
+torch_prof_use_gzip: false
+torch_prof_with_flops: true
+torch_prof_with_stack: false
+torch_profiler_trace_dir: null
+train_batch_size: 512
+train_dataset:
+  sprucfluo:
+    cycle: true
+    datadir: null
+    datasets: *id004
+    drop_last: true
+    is_train: true
+    max_seq_len: 1024
+    num_samples: 33037296
+    seed: 17
+    shuffle: true
+    shuffle_buffer_size: 50000
+    tokenizer_name: gpt2
+    weights: *id005
+train_subset_num_batches: null
+val_dataset:
+  sprucfluo:
+    cycle: false
+    datadir: null
+    datasets: *id006
+    drop_last: false
+    is_train: true
+    max_seq_len: 1024
+    num_samples: null
+    seed: 17
+    shuffle: false
+    shuffle_buffer_size: 10000
+    tokenizer_name: gpt2
+    weights: null
+validate_every_n_batches: 1000
+validate_every_n_epochs: 1
