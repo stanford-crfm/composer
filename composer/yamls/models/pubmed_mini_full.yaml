@@ -319,7 +319,7 @@ train_dataset:
     num_samples: 33037296
     seed: 17
     shuffle: true
-    shuffle_buffer_size: 50000
+    shuffle_buffer_size: 100
     tokenizer_name: gpt2
     weights: *id005
 train_subset_num_batches: null
