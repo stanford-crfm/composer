@@ -26,7 +26,7 @@ dist_timeout: 15.0
 eval_batch_size: 32
 eval_subset_num_batches: null
 evaluators: null
-grad_accum: 2
+grad_accum: 64
 grad_clip_norm: 1.0
 load_chunk_size: 1048576
 load_object_store: null
