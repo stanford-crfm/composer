@@ -5,11 +5,14 @@ import transformers
 from transformers import AutoConfig, AutoTokenizer
 
 """
-Converts DeepSpeed-format checkpoint to Torch-format checkpoint.
+Converts DeepSpeed-format checkpoint to Hugging Face model for downstream
+evaluation.
 
 Example usage:
 
-python3 scripts/convert_deepspeed_to_torch_checkpoint.py --input-path ./deepspeed/mp_rank_00_model_states.pt
+python3 scripts/convert_deepspeed_to_hf_model.py \ 
+--input-checkpoint ./deepspeed/mp_rank_00_model_states.pt \
+--config composer/yamls/models/mistral_medical_gpt2_125m_finetuned.yaml
 """
 
 
@@ -52,6 +55,21 @@ def create_hf_model(config, torch_state_dict):
     return model
 
 
+def convert_deepspeed_checkpoint_to_hf_model(checkpoint_path: str, config_path: str, output_path: str):
+    state_dict = convert_checkpoint(checkpoint_path)
+    model_name, config = extract_hf_config_from_yaml(config_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = create_hf_model(config, state_dict)
+    model.save_pretrained(output_path)
+    tokenizer.save_pretrained(output_path)
+
+    # Load HF model to verify the conversion went okay.
+    try:
+        transformers.AutoModelForCausalLM.from_pretrained(output_path)
+        print("Done and verified.")
+    except Exception as e:
+        print(f"Something went wrong: {str(e)}")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-checkpoint", help="Path to DeepSpeed checkpoint")
@@ -61,19 +79,7 @@ def main():
     )
 
     args = parser.parse_args()
-    state_dict = convert_checkpoint(args.input_checkpoint)
-    model_name, config = extract_hf_config_from_yaml(args.config)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = create_hf_model(config, state_dict)
-    model.save_pretrained(args.output_dir)
-    tokenizer.save_pretrained(args.output_dir)
-
-    # Load HF model to verify the conversion went okay.
-    try:
-        transformers.AutoModelForCausalLM.from_pretrained(args.output_dir)
-        print("Done and verified.")
-    except Exception as e:
-        print(f"Something went wrong: {str(e)}")
+    convert_deepspeed_checkpoint_to_hf_model(args.input_checkpoint. args.config, args.output_dir)
 
 
 if __name__ == "__main__":

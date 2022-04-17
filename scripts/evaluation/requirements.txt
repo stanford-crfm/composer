@@ -1,0 +1,10 @@
+PyYAML==6.0
+wandb==0.12.11
+
+# For downstream evaluation
+# pip install torch==1.10.1+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+torch==1.10.1
+transformers==4.9.1
+datasets==1.11.0
+sklearn
+seqeval
