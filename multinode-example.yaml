@@ -1,0 +1,96 @@
+image: mosaicml/pytorch_mofed:jamie-temp
+name: gpt2-1dot5b-nodes-4-005
+git_repo: https://github.com/mosaicml/composer.git
+git_branch: abhi/gpt2_updates
+instance: r6z1-g8-a100
+num_nodes: 4
+
+command: >-
+  git clone {{ git_repo }}
+
+  cd composer
+
+  git checkout {{ git_branch }}
+
+  pip install --user -e .[all]
+
+  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name {{ name }}
+
+parameters:
+  train_dataset:
+    c4:
+      split: train
+      num_samples: 10240000
+      max_seq_len: 1024
+      tokenizer_name: gpt2
+      group_method: concat
+      seed: 17
+      shuffle: true
+      drop_last: true
+  val_dataset:
+    c4:
+      split: validation
+      num_samples: 102400
+      max_seq_len: 1024
+      tokenizer_name: gpt2
+      group_method: truncate
+      seed: 17
+      shuffle: false
+      drop_last: false
+  model:
+    gpt2:
+      use_pretrained: false
+      tokenizer_name: gpt2
+      gradient_checkpointing: false
+      model_config:
+        n_embd: 1600
+        n_head: 25
+        n_layer: 48
+        n_positions: 1024
+  optimizer:
+    decoupled_adamw:
+      lr: 2.0e-4
+      betas:
+        - 0.9
+        - 0.95
+      eps: 1.0e-08
+      weight_decay: 0.0
+  schedulers:
+    cosine_decay_with_warmup:
+      t_warmup: 0.01dur
+  max_duration: 1ep
+  train_batch_size: 512
+  grad_accum: 8
+  eval_batch_size: 32
+  seed: 17
+  device:
+    gpu: {}
+  dataloader:
+    pin_memory: true
+    persistent_workers: true
+    num_workers: 1
+    timeout: 0
+    prefetch_factor: 2
+  precision: fp16
+  deepspeed:
+    zero_optimization:
+      stage: 1
+  grad_clip_norm: 1.0
+  validate_every_n_batches: 1000
+  validate_every_n_epochs: 1
+
+  ### Logging ###
+  callbacks:
+    lr_monitor: {}
+    speed_monitor:
+      window_size: 5
+  save_folder: "/tmp/{run_name}"
+  save_artifact_name:  "{run_name}/checkpoints/rank{rank}"
+  save_interval: 1000ba
+  save_num_checkpoints_to_keep: 1
+  loggers:
+    progress_bar: {}
+    wandb:
+      project: multinode-gpt2-1dot5b
+      rank_zero_only: true
+      log_artifacts: true
