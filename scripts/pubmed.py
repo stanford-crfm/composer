@@ -36,7 +36,10 @@ _ALL: str = "all"
 N_SHARDS_PER_CORPUS_PER_SPLIT_PUBMED: Dict[str, Dict[str, int]] = {
     "Abs": {"train": 128, "val": 8},
     "C": {"train": 128, "val": 8},
+    "randomized": {"train": 128, "val": 8},
     "medical": {"train": 128, "val": 8},
+    "openwebtext": {"train": 128, "val": 8},
+    "pubmed_plus_openweb": {"train": 128, "val": 8}
 }
 
 DATA_URL_BY_CORPUS: Dict[str, str] = {
@@ -44,17 +47,27 @@ DATA_URL_BY_CORPUS: Dict[str, str] = {
            "pubmedAbs_{split}.{index}-of-{n_shards}.jsonl.gz",
     "C": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
          "pubmedC_{split}.{index}-of-{n_shards}.jsonl.gz",
+    "randomized": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
+         "pubmedRandomized_{split}.{index}-of-{n_shards}.jsonl.gz",
     # TODO: split this into its own dataset, add mixing
-    "medical": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
-               "plain_medical_text_{split}.{index}-of-{n_shards}.jsonl.gz"
+    "medical": "https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/"
+               "plain_medical_text_{split}.{index}-of-{n_shards}.jsonl.gz",
+    "openwebtext": "https://storage.googleapis.com/pubmed-mosaic/openwebtext-sharded/"
+               "openwebtext_{split}.{index}-of-{n_shards}.jsonl.gz",
+    "pubmed_plus_openweb": "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/"
+               "pubmed_plus_openweb_{split}.{index}-of-{n_shards}.jsonl.gz"
 }
 
 NAMES_TO_CORPORA: Dict[str, str] = {
     "Abs": ["Abs"],
     "C": ["C"],
+    "randomized": ["randomized"],
     "medical": ["medical"],
     _ALL: ["Abs", "C", "medical"],
     "pubmed": ["Abs", "C"],
+    "pubmed_randomized": ["randomized"],
+    "openwebtext": ["openwebtext"],
+    "pubmed_plus_openweb": ["pubmed_plus_openweb"]
 }
 
 
