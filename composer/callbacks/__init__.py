@@ -6,15 +6,13 @@ Each callback inherits from the :class:`~composer.core.callback.Callback` base c
 examples for writing your own callbacks at the :class:`~composer.core.callback.Callback` base class.
 """
 from composer.callbacks.callback_hparams import (CallbackHparams, CheckpointSaverHparams, GradMonitorHparams,
-                                                 LRMonitorHparams, MemoryMonitorHparams, RunDirectoryUploaderHparams,
-                                                 SpeedMonitorHparams,
+                                                 LRMonitorHparams, MemoryMonitorHparams, SpeedMonitorHparams,
                                                  LossScaleMonitorHparams)
 from composer.callbacks.checkpoint_saver import CheckpointSaver
 from composer.callbacks.grad_monitor import GradMonitor
 from composer.callbacks.lr_monitor import LRMonitor
 from composer.callbacks.loss_scale_monitor import LossScaleMonitor
 from composer.callbacks.memory_monitor import MemoryMonitor
-from composer.callbacks.run_directory_uploader import RunDirectoryUploader
 from composer.callbacks.speed_monitor import SpeedMonitor
 
 __all__ = [
@@ -22,7 +20,6 @@ __all__ = [
     "LRMonitor",
     "LossScaleMonitor",
     "MemoryMonitor",
-    "RunDirectoryUploader",
     "SpeedMonitor",
     "CheckpointSaver",
     # hparams objects
@@ -32,6 +29,5 @@ __all__ = [
     "LRMonitorHparams",
     "LossScaleMonitorHparams",
     "MemoryMonitorHparams",
-    "RunDirectoryUploaderHparams",
     "SpeedMonitorHparams",
 ]

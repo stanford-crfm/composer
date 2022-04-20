@@ -1,0 +1,61 @@
+train_dataset:
+  c4:
+    split: train
+    num_samples: 10240000 # 1e10 tok ~= 10240000[sa] * 1024[msl] = 20000[ba] * 512[bs] * 1024[msl]
+    max_seq_len: 1024
+    tokenizer_name: gpt2
+    group_method: concat
+    seed: 17
+    shuffle: true
+    drop_last: true
+val_dataset:
+  c4:
+    split: validation
+    num_samples: 102400 # 1e8 tok ~= 102400[sa] * 1024[msl]
+    max_seq_len: 1024
+    tokenizer_name: gpt2
+    group_method: truncate
+    seed: 17
+    shuffle: false
+    drop_last: false
+model:
+  gpt2:
+    use_pretrained: false
+    tokenizer_name: gpt2
+    gradient_checkpointing: false
+    model_config:
+      n_embd: 1600
+      n_head: 25
+      n_layer: 48
+      n_positions: 1024
+optimizer:
+  decoupled_adamw:
+    lr: 2.0e-4
+    betas:
+      - 0.9
+      - 0.95
+    eps: 1.0e-08
+    weight_decay: 0.0
+schedulers:
+  - constant_with_warmup:
+      t_warmup: 0.01dur
+max_duration: 1ep
+train_batch_size: 512 # 0.5e6 tok ~= 512[bs] * 1024[msl]
+grad_accum: 32 # 512[bs] // 8[devices] // 2[micro_bs_per_device] = 64[ga], assuming 8xA100-40GB and ZERO-1
+eval_batch_size: 16 # 8[devices] * 2[micro_bs_per_device] = 8[bs], assuming 8xA100-40GB and ZERO-1
+seed: 17
+device:
+  gpu: {}
+dataloader:
+  pin_memory: true
+  persistent_workers: true
+  num_workers: 1
+  timeout: 0
+  prefetch_factor: 2
+precision: fp16
+deepspeed:
+  zero_optimization:
+    stage: 1
+grad_clip_norm: 1.0
+validate_every_n_batches: 1000
+validate_every_n_epochs: 1

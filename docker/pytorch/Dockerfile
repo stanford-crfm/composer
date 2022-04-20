@@ -20,6 +20,7 @@ RUN apt-get update && \
         dirmngr \
         apt-utils \
         gpg-agent \
+        openssh-client \
         # For PILLOW:
         zlib1g-dev \
         libtiff-dev \
@@ -103,6 +104,19 @@ RUN pip${PYTHON_VERSION} install --no-cache-dir --find-links https://download.py
         torch==${PYTORCH_VERSION}+${CUDA_VERSION_TAG} \
         torchvision==${TORCHVISION_VERSION}+${CUDA_VERSION_TAG}
 
+###################################
+# Mellanox OFED driver installation
+###################################
+
+ARG MOFED_VERSION
+ARG MOFED_OS_VERSION
+
+RUN if [ -n "$CUDA_VERSION" ] && [ "$LINUX_DISTRO" == "ubuntu:20.04" ] ; then \
+        wget -nv -P /tmp http://content.mellanox.com/ofed/MLNX_OFED-${MOFED_VERSION}/MLNX_OFED_LINUX-${MOFED_VERSION}-${MOFED_OS_VERSION}.tgz && \
+        tar -zxvf /tmp/MLNX_OFED_LINUX-${MOFED_VERSION}-${MOFED_OS_VERSION}.tgz -C /tmp && \
+        /tmp/MLNX_OFED_LINUX-${MOFED_VERSION}-${MOFED_OS_VERSION}/mlnxofedinstall --user-space-only --without-fw-update --force ; \
+    fi
+
 #########
 # Cleanup
 #########
@@ -154,10 +168,6 @@ USER mosaicml
 FROM pytorch_stage AS vision_stage
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG PYTORCH_VERSION
-ARG CUDA_VERSION_TAG
-ARG MMCV_TORCH_VERSION
-
 ##############################
 # MosaicML Vision Dependencies
 ##############################
@@ -176,8 +186,15 @@ RUN sudo apt-get update && \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/*
 
-RUN sudo pip3 install --no-cache-dir ffcv opencv-python numba 
+ARG CUDA_VERSION_TAG
+ARG MMCV_VERSION
+ARG MMCV_TORCH_VERSION
+ARG PYTHON_VERSION
 
-RUN sudo pip3 install --no-cache-dir mmcv-full==1.4.4 -f https://download.openmmlab.com/mmcv/dist/${CUDA_VERSION_TAG}/${MMCV_TORCH_VERSION}/index.html
-
-RUN sudo pip3 install --no-cache-dir mmsegmentation
+RUN sudo pip${PYTHON_VERSION} install --no-cache-dir \
+    ffcv==0.0.3 \
+    'opencv-python>=4.5.5.64,<4.6' \
+    'numba>=0.55.0,<0.56' \
+    cupy-`echo ${CUDA_VERSION_TAG} | sed "s/cu/cuda/g"`>=10.2.0 && \
+    sudo pip${PYTHON_VERSION} install --no-cache-dir mmcv-full==${MMCV_VERSION} -f https://download.openmmlab.com/mmcv/dist/${CUDA_VERSION_TAG}/${MMCV_TORCH_VERSION}/index.html && \
+    sudo pip${PYTHON_VERSION} install --no-cache-dir 'mmsegmentation>=0.22.0,<0.23'

@@ -12,6 +12,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import List
 
+import numpy as np
 import torch
 import torch.utils.data
 import yahp as hp
@@ -21,9 +22,10 @@ from torchvision.datasets import ImageFolder
 from composer.core import DataSpec
 from composer.core.types import DataLoader
 from composer.datasets.dataloader import DataLoaderHparams
+from composer.datasets.ffcv_utils import ffcv_monkey_patches, write_ffcv_dataset
 from composer.datasets.hparams import DatasetHparams, SyntheticHparamsMixin, WebDatasetHparams
 from composer.datasets.synthetic import SyntheticBatchPairDataset
-from composer.datasets.utils import NormalizationFn, create_ffcv_dataset, pil_image_collate
+from composer.datasets.utils import NormalizationFn, pil_image_collate
 from composer.utils import dist
 
 # ImageNet normalization values from torchvision: https://pytorch.org/vision/stable/models.html
@@ -100,34 +102,43 @@ class ImagenetDatasetHparams(DatasetHparams, SyntheticHparamsMixin):
                         raise ValueError(
                             "datadir is required if use_synthetic is False and ffcv_write_dataset is True.")
                     ds = ImageFolder(os.path.join(self.datadir, split))
-                    create_ffcv_dataset(dataset=ds,
-                                        write_path=dataset_filepath,
-                                        max_resolution=500,
-                                        num_workers=dataloader_hparams.num_workers,
-                                        compress_probability=0.50,
-                                        jpeg_quality=90)
+                    write_ffcv_dataset(dataset=ds,
+                                       write_path=dataset_filepath,
+                                       max_resolution=500,
+                                       num_workers=dataloader_hparams.num_workers,
+                                       compress_probability=0.50,
+                                       jpeg_quality=90)
                 # Wait for the local rank 0 to be done creating the dataset in ffcv format.
                 dist.barrier()
 
-            label_pipeline: List[Operation] = [IntDecoder(), ffcv.transforms.ToTensor(), ffcv.transforms.Squeeze()]
+            this_device = torch.device(f'cuda:{dist.get_local_rank()}')
+            label_pipeline: List[Operation] = [
+                IntDecoder(),
+                ffcv.transforms.ToTensor(),
+                ffcv.transforms.Squeeze(),
+                ffcv.transforms.ToDevice(this_device, non_blocking=True)
+            ]
             image_pipeline: List[Operation] = []
             if self.is_train:
                 image_pipeline.extend([
                     RandomResizedCropRGBImageDecoder((self.crop_size, self.crop_size)),
                     ffcv.transforms.RandomHorizontalFlip()
                 ])
+                dtype = np.float16
             else:
                 image_pipeline.extend([CenterCropRGBImageDecoder((self.crop_size, self.crop_size), ratio=224 / 256)])
+                dtype = np.float32
             # Common transforms for train and test
             image_pipeline.extend([
                 ffcv.transforms.ToTensor(),
-                ffcv.transforms.ToTorchImage(channels_last=False, convert_back_int16=False),
-                ffcv.transforms.Convert(torch.float32),
-                # The following doesn't work.
-                #ffcv.transforms.NormalizeImage(np.array(IMAGENET_CHANNEL_MEAN), np.array(IMAGENET_CHANNEL_STD), np.float32),
-                transforms.Normalize(IMAGENET_CHANNEL_MEAN, IMAGENET_CHANNEL_STD),
+                ffcv.transforms.ToDevice(this_device, non_blocking=True),
+                ffcv.transforms.ToTorchImage(),
+                ffcv.transforms.NormalizeImage(np.array(IMAGENET_CHANNEL_MEAN), np.array(IMAGENET_CHANNEL_STD), dtype),
             ])
 
+            is_distributed = dist.get_world_size() > 1
+
+            ffcv_monkey_patches()
             ordering = ffcv.loader.OrderOption.RANDOM if self.is_train else ffcv.loader.OrderOption.SEQUENTIAL
 
             return ffcv.Loader(
@@ -135,7 +146,7 @@ class ImagenetDatasetHparams(DatasetHparams, SyntheticHparamsMixin):
                 batch_size=batch_size,
                 num_workers=dataloader_hparams.num_workers,
                 order=ordering,
-                distributed=False,
+                distributed=is_distributed,
                 pipelines={
                     'image': image_pipeline,
                     'label': label_pipeline
@@ -214,7 +225,7 @@ class TinyImagenet200WebDatasetHparams(WebDatasetHparams):
     channel_stds: List[float] = hp.optional('Std per image channel', default=(0.229, 0.224, 0.225))
 
     def initialize_object(self, batch_size: int, dataloader_hparams: DataLoaderHparams) -> DataLoader:
-        from composer.datasets.webdataset import load_webdataset
+        from composer.datasets.webdataset_utils import load_webdataset
 
         if self.is_train:
             split = 'train'
@@ -258,7 +269,7 @@ class Imagenet1kWebDatasetHparams(WebDatasetHparams):
     crop_size: int = hp.optional("crop size", default=224)
 
     def initialize_object(self, batch_size: int, dataloader_hparams: DataLoaderHparams) -> DataSpec:
-        from composer.datasets.webdataset import load_webdataset
+        from composer.datasets.webdataset_utils import load_webdataset
 
         if self.is_train:
             # include fixed-size resize before RandomResizedCrop in training only
