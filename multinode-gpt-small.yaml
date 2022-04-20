@@ -79,7 +79,7 @@ parameters:
           reorder_and_upcast_attn: true
           scale_attn_by_inverse_layer_idx: true
   optimizer:
-    decoupled_adamw:
+    adamw:
       lr: 3.0e-4
       betas:
         - 0.9
