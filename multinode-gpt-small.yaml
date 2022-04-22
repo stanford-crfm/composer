@@ -1,5 +1,5 @@
 image: mosaicml/pytorch_mofed:jamie-temp
-name: gpt2-125m-pubmed-openweb-nodes-4-take-5
+name: gpt2-125m-pubmed-openweb-nodes-4-take-6
 git_repo: https://github.com/stanford-crfm/composer.git
 git_branch: multinode_gpt2
 instance: r6z1-g8-a100
@@ -91,7 +91,7 @@ parameters:
       t_warmup: 0.01dur
   max_duration: 400000ba
   train_batch_size: 512
-  grad_accum: 2 # TODO, is this right?
+  grad_accum: 4 # TODO, is this right?
   eval_batch_size: 32
   seed: 17
   device:
