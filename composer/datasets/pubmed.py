@@ -66,10 +66,17 @@ class PubMedDatasetHparams(DatasetHparams):
         A :class:`~composer.core.DataSpec` object
     """
 
-    name: str = hp.optional("What name (subset) for the dataset to build. (Default: `all`)", default="all")
-    split: str = hp.optional("What split of the dataset to use. Either `train` or `validation`.", default=None)
+    name: str = hp.optional(
+        "What name (subset) for the dataset to build. (Default: `all`)", default="all"
+    )
+    split: str = hp.optional(
+        "What split of the dataset to use. Either `train` or `validation`.",
+        default=None,
+    )
     num_samples: int = hp.optional(
-        "The number of post-processed token samples, used to set epoch size of the IterableDataset.", default=None)
+        "The number of post-processed token samples, used to set epoch size of the IterableDataset.",
+        default=None,
+    )
     tokenizer_name: str = hp.optional(
         "The name of the HuggingFace tokenizer to preprocess text with.", default=None
     )
@@ -105,7 +112,17 @@ class PubMedDatasetHparams(DatasetHparams):
 
     def validate(self):
         # TODO: get these from the dataset
-        if self.name not in ["all", "Abs", "C", "pubmed", "medical", "randomized", "pubmed_randomized", "openwebtext"]:
+        if self.name not in [
+            "all",
+            "Abs",
+            "C",
+            "pubmed",
+            "medical",
+            "randomized",
+            "pubmed_randomized",
+            "openwebtext",
+            "pubmed_plus_openweb",
+        ]:
             raise ValueError(f"Unknown name: '{self.name}'")
         if self.split not in ["train", "validation"]:
             raise ValueError(f"Unknown split: '{self.split}'")
@@ -116,19 +133,29 @@ class PubMedDatasetHparams(DatasetHparams):
         if self.max_seq_len is None or self.max_seq_len <= 0:
             raise ValueError(f"Must provide 'max_seq_len' > 0")
         if self.group_method not in ["truncate", "concat"]:
-            raise ValueError(f"Unknown group_method: '{self.group_method}'. Must be 'truncate' or 'concat'")
+            raise ValueError(
+                f"Unknown group_method: '{self.group_method}'. Must be 'truncate' or 'concat'"
+            )
         if self.mlm and self.mlm_probability <= 0:
-            raise ValueError("Must provide a positive 'mlm_probability' when using masked language modeling.")
+            raise ValueError(
+                "Must provide a positive 'mlm_probability' when using masked language modeling."
+            )
 
-    def initialize_object(self, batch_size: int, dataloader_hparams: DataLoaderHparams) -> DataSpec:
+    def initialize_object(
+        self, batch_size: int, dataloader_hparams: DataLoaderHparams
+    ) -> DataSpec:
         try:
             import transformers
         except ImportError:
-            raise ImportError('HuggingFace transformers not installed. '
-                              'Please install with `pip install composer[nlp]`')
+            raise ImportError(
+                "HuggingFace transformers not installed. "
+                "Please install with `pip install composer[nlp]`"
+            )
 
         if dataloader_hparams.num_workers > 1:
-            log.warning("Pubmed Dataset not compatible with num_workers > 1. Overwriting value to num_workers=1")
+            log.warning(
+                "Pubmed Dataset not compatible with num_workers > 1. Overwriting value to num_workers=1"
+            )
             dataloader_hparams.num_workers = 1
 
         # Get Pubmed dataset
@@ -184,22 +211,26 @@ class PubmedDataset(IterableDataset):
         IterableDataset: A :class:`torch.utils.data.IterableDataset` object.
     """
 
-    def __init__(self,
-                 name,
-                 split,
-                 num_samples,
-                 tokenizer_name,
-                 max_seq_len,
-                 group_method,
-                 shuffle=False,
-                 shuffle_buffer_size=10000,
-                 seed=5):
+    def __init__(
+        self,
+        name,
+        split,
+        num_samples,
+        tokenizer_name,
+        max_seq_len,
+        group_method,
+        shuffle=False,
+        shuffle_buffer_size=10000,
+        seed=5,
+    ):
         try:
             import datasets
             import transformers
         except ImportError:
-            raise ImportError('HuggingFace transformers and datasets are not installed. '
-                              'Please install with `pip install composer[nlp]`')
+            raise ImportError(
+                "HuggingFace transformers and datasets are not installed. "
+                "Please install with `pip install composer[nlp]`"
+            )
 
         self.num_samples = num_samples
         self.tokenizer_name = tokenizer_name
@@ -220,8 +251,6 @@ class PubmedDataset(IterableDataset):
                 f"across {self.world_size} devices."
             )
             self.num_samples = new_num_samples
-
-
 
         # Build tokenizer
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer_name)
@@ -269,7 +298,9 @@ class PubmedDataset(IterableDataset):
         # Shuffle post-processed token samples
         # Samples are read into and randomly sampled from per-device shuffle buffer
         if self.shuffle:
-            sized_token_dataset = sized_token_dataset.shuffle(buffer_size=self.shuffle_buffer_size, seed=self.seed)
+            sized_token_dataset = sized_token_dataset.shuffle(
+                buffer_size=self.shuffle_buffer_size, seed=self.seed
+            )
 
         # Finish
         self.iterable_dataset = sized_token_dataset
@@ -277,7 +308,9 @@ class PubmedDataset(IterableDataset):
     def __iter__(self):
         worker_info = get_worker_info()
         if worker_info is not None and worker_info.num_workers != 1:
-            raise ValueError("Multi-worker processing not supported for this dataset yet, please use 'num_workers=1'.")
+            raise ValueError(
+                "Multi-worker processing not supported for this dataset yet, please use 'num_workers=1'."
+            )
         return iter(self.iterable_dataset)
 
     def __len__(self):
@@ -288,13 +321,16 @@ class PubmedDataset(IterableDataset):
     def _repeat(self, dataset):
         try:
             from datasets.iterable_dataset import _BaseExamplesIterable
-            from datasets.iterable_dataset import iterable_dataset as hf_iterable_dataset
+            from datasets.iterable_dataset import (
+                iterable_dataset as hf_iterable_dataset,
+            )
         except ImportError:
-            raise ImportError('HuggingFace datasets are not installed. '
-                              'Please install with `pip install composer[nlp]`')
+            raise ImportError(
+                "HuggingFace datasets are not installed. "
+                "Please install with `pip install composer[nlp]`"
+            )
 
         class RepeatExamplesIterable(_BaseExamplesIterable):
-
             def __init__(self, ex_iterable):
                 self.ex_iterable = ex_iterable
 
@@ -317,7 +353,7 @@ class PubmedDataset(IterableDataset):
     def _subsample(self, device_offset, text_batch):
         # Only return the i-th item out of N sequential items
         for k, v in text_batch.items():
-            text_batch[k] = v[device_offset:device_offset + 1]
+            text_batch[k] = v[device_offset : device_offset + 1]
         return text_batch
 
     # Take a HF iterable dataset with multiple shards and prepare it for data-parallel training
@@ -357,7 +393,7 @@ class PubmedDataset(IterableDataset):
         device_offset = self.rank % devices_per_shard
 
         # Select a deterministic subset of shards
-        device_filepaths = filepaths[shard_offset:: self.world_size]
+        device_filepaths = filepaths[shard_offset :: self.world_size]
         dataset._ex_iterable.kwargs["filepaths"] = device_filepaths
 
         # Subsample shard if shard is being shared among devices
@@ -432,7 +468,7 @@ class PubmedDataset(IterableDataset):
             # Split into token samples of size max_seq_len.
             result = {
                 k: [
-                    v[i: i + self.max_seq_len]
+                    v[i : i + self.max_seq_len]
                     for i in range(0, num_tokens, self.max_seq_len)
                 ]
                 for k, v in concat_tokens.items()

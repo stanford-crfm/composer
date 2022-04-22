@@ -23,7 +23,9 @@ val_dataset:
     drop_last: false
 model:
   gpt2:
-    use_pretrained: false
+    use_pretrained: true
+    pretrained_model_name: stanford-crfm/pubmed_gpt
+    pretrained_revision: pubmed-mini-randomized
     tokenizer_name: gpt2
     model_config:
       activation_function: gelu_new

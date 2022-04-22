@@ -1,9 +1,9 @@
 # Composer configuration for Medical GPT-2 (125M)
 train_dataset:
   pubmed:
-    name: randomized
+    name: pubmed_plus_openweb
     split: train
-    num_samples: 33037301
+    num_samples: 330373010
     max_seq_len: 1024
     tokenizer_name: gpt2
     group_method: concat
@@ -12,7 +12,7 @@ train_dataset:
     shuffle_buffer_size: 100000
 val_dataset:
   pubmed:
-    name: pubmed
+    name: randomized
     split: validation
     num_samples: 63954
     max_seq_len: 1024
