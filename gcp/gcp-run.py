@@ -1,19 +1,41 @@
 # launches a gcp instance with a docker image and runs a run yaml a la mcli run
 import argparse
+import os
 
 import hiyapyco
 import uuid
 import tempfile
 
+# gcp-run.py -f my-yaml
+
 parser = argparse.ArgumentParser(description="Run a gcp instance")
 parser.add_argument("-f", "--file", type=str, help="path to run yaml")
 parser.add_argument("--mangle", action="store_true", help="should we mangle the run name", default=True)
-parser.add_argument("-g", "--gpus", type=int, help="number of gpus", default=4)
-parser.add_argument("-a", "--accelerator", type=str, help="accelerator type", default="nvidia-tesla-v100")
-parser.add_argument("-z", "--zone", type=str, help="zone", default="us-central1-a")
+parser.add_argument("-g", "--gpus", type=int, help="number of gpus", default=2)
+parser.add_argument("-a", "--accelerator", type=str, help="accelerator type", default="a100")
+parser.add_argument("-z", "--zone", type=str, help="zone", default="us-central1-c")
 parser.add_argument("--machine-type", type=str, help="machine type", default="n1-standard-32")
+parser.add_argument("-e", "--env", action="append", help="environment variables. either NAME or NAME=VALUE", default=[])
 
 args = parser.parse_args()
+
+A1_MACHINE_TYPES = {
+    1: "a2-highgpu-1g",
+    2: "a2-highgpu-2g",
+    4: "a2-highgpu-4g",
+    8: "a2-highgpu-8g",
+    16: "a2-megagpu-16g",
+}
+
+if "a100" in args.accelerator:
+    if args.gpus not in A1_MACHINE_TYPES:
+        print("ERROR: Accelerator count not supported. Supported counts are: {}".format(A1_MACHINE_TYPES.keys()))
+        exit(1)
+    machine_type = A1_MACHINE_TYPES[args.gpus]
+    if machine_type != args.machine_type:
+        print("WARNING: machine type {} not supported for accelerator count {} with a100s. Using {} instead".format(
+            args.machine_type, args.gpus, machine_type))
+        args.machine_type = machine_type
 
 base_config = f"""
 """
@@ -23,8 +45,8 @@ parameters = hiyapyco.load(f"composer/yamls/models/{config['models']}.yaml", met
 # override with parameters from the run yaml
 parameters.update(config["parameters"])
 
-print(config)
-print(parameters)
+# print(config)
+# print(parameters)
 
 docker_image = config["image"]
 if ".io" not in docker_image:
@@ -45,6 +67,18 @@ command = command.replace("{{ parameters['_n_gpus'] }}", str(args.gpus))
 import jinja2
 command = jinja2.Template(command).render(**config)
 
+env = []
+if os.getenv("WANDB_API_KEY"):
+    env.append("WANDB_API_KEY=" + os.getenv("WANDB_API_KEY"))
+
+for e in args.env:
+    if "=" in e:
+        name, value = e.split("=")
+        env.append(f"{name}={value}")
+    else:
+        env.append(f"{e}={os.getenv(e, '')}")
+
+env = "\n".join(env)
 
 if False: # vertex ai pricing is stupid
     with tempfile.NamedTemporaryFile(mode="w") as worker_config_f, tempfile.TemporaryDirectory() as jobdir:
@@ -95,10 +129,9 @@ if False: # vertex ai pricing is stupid
 else:
     with tempfile.NamedTemporaryFile(mode="w", suffix=".sh") as startup_command_out:
         host_config_dir = "/tmp/config"
-        container_config_dir = "/mnt/config"
         script_template = open("gcp/gcp-startup-script-template.sh").read()
-        script = jinja2.Template(script_template).render(command=command, parameters=hiyapyco.dump(parameters))
-        print(script)
+        script = jinja2.Template(script_template).render(command=command, parameters=hiyapyco.dump(parameters), env=env)
+        # print(script)
         startup_command_out.write(script)
         startup_command_out.flush()
 
@@ -123,31 +156,27 @@ else:
         # --scopes=https://www.googleapis.com/auth/cloud-platform --image-family=cos-stable \
         # --image-project=cos-cloud --boot-disk-size=10GB --boot-disk-device-name=DISK_NAME
         cmd = [
-            "gcloud",
-            "compute",
-            "instances",
-            "create-with-container",
-            name,
-            "--container-image", docker_image,
-            "--container-command", "bash",
-            "--container-arg", f"{container_config_dir}/run.sh",
+            "gcloud", "compute", "instances",
+            "create", name,
             "--zone", args.zone,
             "--machine-type", args.machine_type,
-            "--accelerator", f"type={args.accelerator},count={args.gpus}",
-            "--metadata", f"image_name={docker_image}",
+            "--service-account=instance-deleter@hai-gcp-models.iam.gserviceaccount.com",
+            "--scopes=https://www.googleapis.com/auth/cloud-platform",
+            "--metadata", f"install-nvidia-driver=True,image_name={docker_image}",
             "--metadata-from-file", f"user-data=gcp/cloud-init.yaml",
             f"--metadata-from-file=startup-script={startup_command_out.name}",
             "--maintenance-policy", "TERMINATE",
             "--restart-on-failure",
-            f"--container-mount-host-path=host-path={host_config_dir},mount-path={container_config_dir}",
-            # "--image-family", "debian-10",
-            # "--image-project", "debian-cloud",
-            # "--image-family", "cos-85-lts",
-             # "--image-project", "cos-cloud",
+            "--image-project", "deeplearning-platform-release",
+            "--image-family", "common-cu113",
             "--boot-disk-size", "500GB",
-            "--preemptible",
+            # "--preemptible",
+            "--provisioning-model=SPOT",
             "--verbosity", "debug",
         ]
+
+        if args.machine_type not in A1_MACHINE_TYPES.values():
+            cmd += ["--accelerator", f"type={args.accelerator},count={args.gpus}"]
 
         import subprocess
         import shlex

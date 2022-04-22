@@ -2,6 +2,14 @@
 
 sudo cos-extensions install gpu
 
+while ! [[ -x "$(command -v nvidia-smi)" ]];
+do
+  echo "sleep to check"
+  sleep 5s
+done
+echo "nvidia-smi is installed"
+
+
 # get image name and container parameters from the metadata
 IMAGE_NAME=$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/image_name -H "Metadata-Flavor: Google")
 
@@ -22,21 +30,45 @@ cat <<\EOF > $CONFIG_DIR/parameters.yaml
 {{ parameters }}
 EOF
 
+cat <<\EOF > $CONFIG_DIR/env.env
+{{ env }}
+EOF
+
 
 ## This is needed if you are using a private images in GCP Container Registry
 ## (possibly also for the gcp log driver?)
-#sudo HOME=/home/root /usr/bin/docker-credential-gcr configure-docker
+sudo HOME=/home/root /usr/bin/docker-credential-gcr configure-docker
 
-# Run! The logs will go to stack driver
-#sudo HOME=/home/root  docker run --log-driver=gcplogs ${IMAGE_NAME} ${CONTAINER_PARAM}
+curl --silent --connect-timeout 1 -f -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/scopes
 
-# Get the zone
-zoneMetadata=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/zone" -H "Metadata-Flavor:Google")
-# Split on / and get the 4th element to get the actual zone name
-IFS=$'/'
-zoneMetadataSplit=($zoneMetadata)
-ZONE="${zoneMetadataSplit[3]}"
+gcloud auth configure-docker
 
-# Run compute delete on the current instance. Need to run in a container
-# because COS machines don't come with gcloud installed
-docker run --entrypoint "gcloud" google/cloud-sdk:alpine compute instances delete ${HOSTNAME}  --delete-disks=all --zone=${ZONE}
+start_docker () {
+  echo "Docker run with GPUs"
+  docker run --env-file $CONFIG_DIR/env.env --log-driver=gcplogs --gpus all --mount type=bind,source=$CONFIG_DIR,target=/mnt/config $IMAGE_NAME bash /mnt/config/run.sh
+  EXIT_CODE=$?
+  echo "Docker finished. Exit Code is $EXIT_CODE"
+  return $EXIT_CODE
+}
+
+start_docker
+
+
+if [[ $EXIT_CODE -eq 0 ]]; then
+  echo "Successfully finished"
+else
+  echo "Docker failed. Exit Code is $EXIT_CODE. Trying one more time"
+  start_docker
+fi
+
+if [[ $EXIT_CODE -eq 0 ]]; then
+  echo "Successfully finished"
+else
+  echo "Docker failed again. Exit Code is $EXIT_CODE. Giving up. Sleeping 2h before killing the instance"
+  sleep 2c
+fi
+
+echo "Kill VM $(hostname)"
+gcloud compute instances delete $(hostname) --zone \
+"$(curl -H Metadata-Flavor:Google http://metadata.google.internal/computeMetadata/v1/instance/zone -s | cut -d/ -f4)" -q
+
