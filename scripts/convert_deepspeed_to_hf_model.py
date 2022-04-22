@@ -94,12 +94,8 @@ def main():
         args.input_checkpoint = f"{work_dir}/{wandb_model_path}"
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
-    state_dict = convert_checkpoint(args.input_checkpoint)
-    model_name, config = extract_hf_config_from_yaml(args.config)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = create_hf_model(config, state_dict)
-    model.save_pretrained(args.output_dir)
-    tokenizer.save_pretrained(args.output_dir)
+
+    convert_deepspeed_checkpoint_to_hf_model(args.input_checkpoint, args.config, args.output_dir)
     if args.wandb_id:
         shutil.rmtree("wandb_download_tmp")
 
