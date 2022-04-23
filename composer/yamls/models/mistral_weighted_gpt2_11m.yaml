@@ -10,7 +10,7 @@ train_dataset:
             - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
       medical:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/medical_train.{1..128}-of-128.jsonl.gz"
+          - "https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/plain_medical_text_train.{1..128}-of-128.jsonl.gz"
 #      arxiv:
 #        urls:
       books: # books2, book3

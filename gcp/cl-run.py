@@ -58,7 +58,7 @@ parser.add_argument("-g", "--gpus", type=int, help="number of gpus", default=8)
 parser.add_argument("-q", "--queue", type=str, help="queue to run on", default="gcp-small")
 parser.add_argument("--disk", "--disk-size", type=str, help="disk size", default=None)
 parser.add_argument("--mem", "--memory", type=str, help="memory", default="300g")
-parser.add_argument("--cpu", "--cpu-count", type=int, help="cpu count", default=8)
+parser.add_argument("--cpu", "--cpu-count", type=int, help="cpu count", default=64)
 parser.add_argument("-w", "--worksheet", type=str, help="worksheet name", default=None)
 
 

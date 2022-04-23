@@ -70,6 +70,9 @@ install_requires = [
     "apache-libcloud>=3.3.1,<4",
     "psutil>=5.8.0,<6",
     "coolname>=1.1.0,<2",
+    'fsspec',
+    'torchdata',
+    'braceexpand',
 ]
 extra_deps = {}
 
@@ -110,10 +113,6 @@ extra_deps["dev"] = [
     "docformatter==1.4",
     "sphinx_panels==0.6.0",
     "sphinxcontrib-images==0.9.4",
-    'zstd',
-    'fsspec',
-    'torchdata',
-    'braceexpand',
     # need webdataset to run pyright. Including here to pass pyright.
     # TODO Remove once https://github.com/mosaicml/composer/issues/771 is fixed.
     "webdataset==0.1.103",
