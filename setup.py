@@ -117,6 +117,7 @@ extra_deps["dev"] = [
     # need webdataset to run pyright. Including here to pass pyright.
     # TODO Remove once https://github.com/mosaicml/composer/issues/771 is fixed.
     "webdataset==0.1.103",
+    "zstandard"
 ]
 
 extra_deps["deepspeed"] = [
