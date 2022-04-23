@@ -158,15 +158,15 @@ class SprucfluoDatasetHparams(DatasetHparams):
 
         if len(datasets) == 1:
             dataset = next(iter(datasets.values()))
-
-            if self.shuffle:
-                dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size)
         else:
             if self.weights is None:
                 dataset = MultiplexerIterDataPipe(*datasets.values())
             else:
                 weights = {datasets[d]: self.weights[d] for d in datasets if self.weights[d] > 0}
                 dataset = SampleMultiplexerDataPipe(weights, seed=self.seed)
+
+        if self.shuffle:
+            dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size)
 
         if self.num_samples:
             dataset = _AssumeLenDataset(dataset, self.num_samples)

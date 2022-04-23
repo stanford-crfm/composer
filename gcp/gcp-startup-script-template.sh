@@ -65,7 +65,7 @@ if [[ $EXIT_CODE -eq 0 ]]; then
   echo "Successfully finished"
 else
   echo "Docker failed again. Exit Code is $EXIT_CODE. Giving up. Sleeping 2h before killing the instance"
-  sleep 2c
+  sleep 2h
 fi
 
 echo "Kill VM $(hostname)"

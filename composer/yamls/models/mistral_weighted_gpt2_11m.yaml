@@ -8,9 +8,80 @@ train_dataset:
       pubmedC:
           urls:
             - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
+      medical:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/medical_train.{1..128}-of-128.jsonl.gz"
+#      arxiv:
+#        urls:
+      books: # books2, book3
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/books2/train-{0..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/books3/train-{0..29}.jsonl.zst"
+      hackernews:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/hackernews/train-{0..29}.jsonl.zst"
+      nih:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/nih/train-{0..29}.jsonl.zst"
+      subtitles:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/opensubtitles/train-{0..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/youtube_subtitles/train-{0..29}.jsonl.zst"
+      stack_exchange:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/stack_exchange/train-{0..29}.jsonl.zst"
+      ubuntu_irc:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/ubuntu_irc/train-{0..29}.jsonl.zst"
+      wikipedia:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/wiki_en/train-{0..29}.jsonl.zst"
+      webtext:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/pile_cc/train-{0..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/owt2/train-{0..29}.jsonl.zst"
+      academic:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/dm_math/train-{0..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/arxiv/train-{0..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/philpapers/train-{0..29}.jsonl.zst"
+      law:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/free_law/train-{0..29}.jsonl.zst"
+      enron:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/enron/train-{0..29}.jsonl.zst"
+      europarl:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/europarl/train-{0..29}.jsonl.zst"
+      gutenberg:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/pg_19/train-{0..29}.jsonl.zst"
+      uspto:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/uspto/train-{0..29}.jsonl.zst"
+#      github:
+#        urls:
+#          - "https://storage.googleapis.com/pubmed-mosaic/github/train-{0..29}.jsonl.zst"
     weights:
-      pubmedAbs: 0.5
-      pubmedC: 0.5
+      pubmedAbs: 1
+      pubmedC: 1
+      medical: 1
+      nih: 1
+      wikipedia: 1
+      books: 0.1
+      academic: 0.1
+      hackernews: 0.1
+      subtitles: 0.1
+      stack_exchange: 0.1
+      ubuntu_irc: 0.1
+      webtext: 0.1
+      law: 0.1
+      enron: 0
+      europarl: 0
+      gutenberg: 0.1
+      uspto: 0.1
+#      github: 0.1
     num_samples: 33037301
     max_seq_len: 1024
     tokenizer_name: gpt2

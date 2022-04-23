@@ -11,7 +11,7 @@ name: mistral-sprucfluo-gpt2-11m # Name of the sweep - it'll be used in run name
 project: mosaic-gpt2  # Name of the Weights and Biases project to use
 image: mosaicml/pytorch  # Name of the docker image to use
 git_repo: https://github.com/stanford-crfm/composer  # Name of the git repo to clone - can be full URL or path under github.com
-git_branch: fancy_dataset  # Name of the git branch/tag/commit to use
+git_branch: multinode_gpt2  # Name of the git branch/tag/commit to use
 # The below will -
 # 1. Clone the git repo (which is filled in automatically)
 # 2. Checkout the correct branch (Also filled in automatically)
