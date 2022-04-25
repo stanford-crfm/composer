@@ -90,17 +90,13 @@ train_dataset:
     shuffle: true
     shuffle_buffer_size: 50000
 val_dataset:
-  sprucfluo:
-    datasets:
-      pubmedAbs:
-          urls:
-            - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_val.{1..8}-of-8.jsonl.gz"
-      pubmedC:
-          urls:
-            - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_val.{1..8}-of-8.jsonl.gz"
-    cycle: false
+  pubmed:
+    name: randomized
+    split: validation
+    num_samples: 63954
     max_seq_len: 1024
     tokenizer_name: gpt2
+    group_method: concat
     seed: 17
     shuffle: false
     drop_last: false
@@ -154,7 +150,7 @@ optimizer:
 schedulers:
   - linear_decay_with_logarithmic_warmup:
       t_warmup: 0.01dur
-max_duration: 400000ba
+max_duration: 100002ba
 train_batch_size: 512 # 0.5e6 tok ~= 256[bs] * 2048[msl]
 grad_accum: 2 # 512[bs] / 8[devices] / 8[per_gpu_microbatch_size] = 16[ga], assuming 8xA100-40GB
 eval_batch_size: 32 # 32[bs] / 8[devices] = 4[per_gpu_microbatch_size], assuming 8xA100-40GB

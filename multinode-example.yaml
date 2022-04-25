@@ -92,5 +92,6 @@ parameters:
     progress_bar: {}
     wandb:
       project: multinode-gpt2-1dot5b
+      name: "{run_name}"
       rank_zero_only: true
       log_artifacts: true

@@ -65,9 +65,11 @@ parser.add_argument("-w", "--worksheet", type=str, help="worksheet name", defaul
 args = parser.parse_args()
 
 config = hiyapyco.load(args.file, method=hiyapyco.METHOD_MERGE)
-parameters = hiyapyco.load(f"composer/yamls/models/{config['models']}.yaml", method=hiyapyco.METHOD_MERGE)
+parameters_hiyapyco = hiyapyco.HiYaPyCo(f"composer/yamls/models/{config['models']}.yaml", method=hiyapyco.METHOD_MERGE)
 # override with parameters from the run yaml
-parameters.update(config["parameters"])
+parameters = parameters_hiyapyco._deepmerge(parameters_hiyapyco.data(), config["parameters"])
+
+print(hiyapyco.dump(parameters))
 
 if args.mangle:
     name = config["name"]

@@ -47,7 +47,7 @@ class SprucfluoDatasetSpecHparams(hp.Hparams):
     # name: str = hp.required("name of the dataset")
     urls: List[str] = hp.required("urls of the dataset. Supports braceexpand")
     json_text_key: str = hp.optional("key of the json text", default="text")
-    extra_fsspec_args: dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.", default_factory=lambda: {})
+    extra_fsspec_args: Dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.", default_factory=lambda: {})
 
     def validate(self):
         pass
