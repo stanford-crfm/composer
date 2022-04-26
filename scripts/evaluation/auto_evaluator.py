@@ -1,4 +1,5 @@
 import os
+import traceback
 import time
 import argparse
 import pdb
@@ -99,47 +100,55 @@ class AutoEvaluator:
                         with htrack_block(
                             f"Processing artifact: {artifact.name} for step: {step}"
                         ):
-                            # Banking on the fact that the hyperparameter config file is pushed first to wandb
-                            checkpoint_path: str = self.prepare(
-                                run, artifact, hyperparameter_artifact=artifacts[0]
-                            )
+                            try:
+                                # Banking on the fact that the hyperparameter config file is pushed first to wandb
+                                checkpoint_path: str = self.prepare(
+                                    run, artifact, hyperparameter_artifact=artifacts[0]
+                                )
 
-                            # Evaluate on downstream tasks
-                            PubMedQATaskEvaluator(
-                                evaluator_state=self.state,
-                                run=run,
-                                artifact=artifact,
-                                step=step,
-                                downstream_dir_path=self.downstream_paths["pubMedQA"],
-                                checkpoint_path=checkpoint_path,
-                            ).evaluate()
-                            MedQATaskEvaluator(
-                                evaluator_state=self.state,
-                                run=run,
-                                artifact=artifact,
-                                step=step,
-                                downstream_dir_path=self.downstream_paths["medQA"],
-                                checkpoint_path=checkpoint_path,
-                            ).evaluate()
-                            NEREBMPICOTaskEvaluator(
-                                evaluator_state=self.state,
-                                run=run,
-                                artifact=artifact,
-                                step=step,
-                                downstream_dir_path=self.downstream_paths["nerBC5CDR"],
-                                checkpoint_path=checkpoint_path,
-                            ).evaluate()
-                            NERBC5CDRTaskEvaluator(
-                                evaluator_state=self.state,
-                                run=run,
-                                artifact=artifact,
-                                step=step,
-                                downstream_dir_path=self.downstream_paths["nerEBMPICO"],
-                                checkpoint_path=checkpoint_path,
-                            ).evaluate()
-
-                    # TODO remove this later -Tony
-                    pdb.set_trace()
+                                # Evaluate on downstream tasks
+                                PubMedQATaskEvaluator(
+                                    evaluator_state=self.state,
+                                    run=run,
+                                    artifact=artifact,
+                                    step=step,
+                                    downstream_dir_path=self.downstream_paths[
+                                        "pubMedQA"
+                                    ],
+                                    checkpoint_path=checkpoint_path,
+                                ).evaluate()
+                                MedQATaskEvaluator(
+                                    evaluator_state=self.state,
+                                    run=run,
+                                    artifact=artifact,
+                                    step=step,
+                                    downstream_dir_path=self.downstream_paths["medQA"],
+                                    checkpoint_path=checkpoint_path,
+                                ).evaluate()
+                                NEREBMPICOTaskEvaluator(
+                                    evaluator_state=self.state,
+                                    run=run,
+                                    artifact=artifact,
+                                    step=step,
+                                    downstream_dir_path=self.downstream_paths[
+                                        "nerBC5CDR"
+                                    ],
+                                    checkpoint_path=checkpoint_path,
+                                ).evaluate()
+                                NERBC5CDRTaskEvaluator(
+                                    evaluator_state=self.state,
+                                    run=run,
+                                    artifact=artifact,
+                                    step=step,
+                                    downstream_dir_path=self.downstream_paths[
+                                        "nerEBMPICO"
+                                    ],
+                                    checkpoint_path=checkpoint_path,
+                                ).evaluate()
+                            except Exception as e:
+                                # Catch exception and try again
+                                hlog(traceback.format_exc())
+                                hlog("Trying again in a future iteration.")
 
     def prepare(
         self, run: Run, artifact: Artifact, hyperparameter_artifact: Artifact
