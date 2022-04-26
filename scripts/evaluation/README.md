@@ -37,6 +37,43 @@ Start the Auto Evaluator:
 `python3 scripts/evaluation/auto_evaluator.py --config-path </path/to/YAML>` 
 
 
-## GCP
+### GCP
 
-TODO: Start a VM with a decent GPU.
+The following are the instructions on how to deploy the auto-evaluation pipeline to GCP.
+
+1. Create a VM: `n1-standard-8` machine with a V100.
+1. SSH into the machine.
+1. Install the Nvidia drivers by typing `y` and enter.
+1. Clone the necessary GitHub repos:
+    1. `git clone https://github.com/stanford-crfm/composer.git`
+    1. `git clone https://github.com/stanford-crfm/mistral` (branch: `michi_pubmed_downstream`)
+1. Create a screen session: `screen -S deploy`.    
+1. Install the necessary dependencies:
+    1. `cd composer`
+    1. `git checkout autoeval`
+    1. `python3 -m venv venv`
+    1. `source venv/bin/activate`
+    1. `pip install -r scripts/evaluation/requirements.txt`
+    1. `pip install -e .`
+1. Create the configuration YAML file (call it `config.yaml`). Here is an example config file:
+   ```text
+    wandb:
+        apiKey: <Your API key>
+        project: mosaic-gpt2
+        entity: stanford-mercury
+    
+    outputDir: output
+    evaluationFrequencySteps: 100000    # How often we evaluate checkpoints in terms of steps
+    checkFrequencySeconds: 600  # Checks the runs in wandb every ten minutes
+    
+    downstreamTaskPaths:
+        pubMedQA: /home/tonyhlee/mistral/downstream/seqcls
+        medQA: /home/tonyhlee/mistral/downstream/mc
+        nerBC5CDR: /home/tonyhlee/mistral/downstream/tokcls
+        nerEBMPICO: /home/tonyhlee/mistral/downstream/tokcls
+    ```
+1. Run `python3 scripts/evaluation/auto_evaluator.py --config-path config.yaml &> run.log`
+1. Exit out of the screen session: `ctrl-ad`.
+1. The auto evaluator should run forever. To check on the evaluator:
+   1. Check `run.log` for logs: `tail -f run.log`.
+   1. Check `output/state.json` to see what's been processed.
