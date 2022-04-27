@@ -37,4 +37,4 @@ RUN pip install --no-cache-dir transformers "datasets<2" 'braceexpand' 'zstandar
 
 RUN pip install --no-cache-dir triton==1.0.0 timm==0.5.4 torchdata "pycocotools>=2.0.4"
 
-ENV PATH $PATH:/root/.local/bin
+ENV PATH $PATH:/root/.local/bin:.local/bin
