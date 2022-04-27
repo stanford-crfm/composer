@@ -1,8 +1,8 @@
-name: mini-weighted-best-guess2 # Name of the sweep - it'll be used in run names
+name: xs-weighted-best-guess # Name of the sweep - it'll be used in run names
 project: mosaic-gpt2  # Name of the Weights and Biases project to use
-image: davhall/codalab-composer:latest #davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
+image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
 git_repo: https://github.com/stanford-crfm/composer  # Name of the git repo to clone - can be full URL or path under github.com
-git_branch: multinode_gpt2  # Name of the git branch/tag/commit to use
+git_branch: pubmed  # Name of the git branch/tag/commit to use
 # The below will -
 # 1. Clone the git repo (which is filled in automatically)
 # 2. Checkout the correct branch (Also filled in automatically)
@@ -13,11 +13,11 @@ command: |
   cd $HOME/composer
   echo 'Checking out composer branch {{ git_branch }}'
   git checkout {{ git_branch }}
-  pip3 install braceexpand zstandard torch==1.11 torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
   pip install --user -e .[all]
+  export PATH=$PATH:$HOME/.local/bin
   composer -n 8 examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name {{ name }}
 instance: r6z1-g8-a100  # Name of the instance you want to run on, e.g. r6z1-g8-a100
-models: mistral_weighted_gpt2_11m  # The name of the model you want to use - should match the name of a YAML file in your local composer "models" directory unless you are fully specifying model parameters in the `parameters` section
+models: mistral_weighted_gpt2_49m  # The name of the model you want to use - should match the name of a YAML file in your local composer "models" directory unless you are fully specifying model parameters in the `parameters` section
 algorithms: []# The name(s) of the algorithm(s) you want to use - should match the name of a YAML file in your local composer "algorithms" directory unless you are fully specifying algorithms parameters in the `parameters` section
 parameters:  # Any parameter overrides you want to use IN EVERY RUN should be specified here
   ##############################
@@ -46,13 +46,13 @@ parameters:  # Any parameter overrides you want to use IN EVERY RUN should be sp
       weights:
         pubmedAbs: 1
         pubmedC: 1
-        medical: 2.5
-        nih: 0.5
-        wikipedia: 2.5
+        medical: 10
+        nih: 1
+        wikipedia: 10
         books: 0
-        academic: 0
+        academic: 0.1
         hackernews: 0
-        subtitles: 0.5
+        subtitles: 5
         stack_exchange: 0
         ubuntu_irc: 0
         webtext: 0.5
