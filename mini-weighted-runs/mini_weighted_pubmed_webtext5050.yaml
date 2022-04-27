@@ -1,4 +1,4 @@
-name: mini-weighted-all-med # Name of the sweep - it'll be used in run names
+name: mini-weighted-pubmed-webtext5050 # Name of the sweep - it'll be used in run names
 project: mosaic-gpt2  # Name of the Weights and Biases project to use
 image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
 git_repo: https://github.com/stanford-crfm/composer  # Name of the git repo to clone - can be full URL or path under github.com
@@ -44,10 +44,10 @@ parameters:  # Any parameter overrides you want to use IN EVERY RUN should be sp
   train_dataset:
     sprucfluo:
       weights:
-        pubmedAbs: 1
-        pubmedC: 1
-        medical: 1
-        nih: 1
+        pubmedAbs: .5
+        pubmedC: .5
+        medical: 0
+        nih: 0
         wikipedia: 0
         books: 0
         academic: 0
@@ -55,7 +55,7 @@ parameters:  # Any parameter overrides you want to use IN EVERY RUN should be sp
         subtitles: 0
         stack_exchange: 0
         ubuntu_irc: 0
-        webtext: 0
+        webtext: 1
         law: 0
         enron: 0
         europarl: 0
