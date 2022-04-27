@@ -1,0 +1,176 @@
+# Composer configuration for Medical GPT-2 (11M)
+train_dataset:
+  sprucfluo:
+    datasets:
+      pubmedAbs:
+          urls:
+            - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
+      pubmedC:
+          urls:
+            - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
+      medical:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/plain_medical_text_train.{1..128}-of-128.jsonl.gz"
+#      arxiv:
+#        urls:
+      books: # books2, book3
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/books2/train-{00..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/books3/train-{00..29}.jsonl.zst"
+      hackernews:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/hackernews/train-{00..29}.jsonl.zst"
+      nih:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/nih/train-{00..29}.jsonl.zst"
+      subtitles:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/opensubtitles/train-{00..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/youtube_subtitles/train-{00..29}.jsonl.zst"
+      stack_exchange:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/stack_exchange/train-{00..29}.jsonl.zst"
+      ubuntu_irc:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/ubuntu_irc/train-{00..29}.jsonl.zst"
+      wikipedia:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/wiki_en/train-{00..29}.jsonl.zst"
+      webtext:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/pile_cc/train-{00..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/owt2/train-{00..29}.jsonl.zst"
+      academic:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/dm_math/train-{00..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/arxiv/train-{00..29}.jsonl.zst"
+          - "https://storage.googleapis.com/pubmed-mosaic/philpapers/train-{00..29}.jsonl.zst"
+      law:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/free_law/train-{00..29}.jsonl.zst"
+      enron:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/enron/train-{00..29}.jsonl.zst"
+      europarl:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/europarl/train-{00..29}.jsonl.zst"
+      gutenberg:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/pg_19/train-{00..29}.jsonl.zst"
+      uspto:
+        urls:
+          - "https://storage.googleapis.com/pubmed-mosaic/uspto/train-{00..29}.jsonl.zst"
+#      github:
+#        urls:
+#          - "https://storage.googleapis.com/pubmed-mosaic/github/train-{00..29}.jsonl.zst"
+    weights:
+      pubmedAbs: 1
+      pubmedC: 1
+      medical: 1
+      nih: 1
+      wikipedia: 1
+      books: 0.1
+      academic: 0.1
+      hackernews: 0.1
+      subtitles: 0.1
+      stack_exchange: 0.1
+      ubuntu_irc: 0.1
+      webtext: 0.1
+      law: 0.1
+      enron: 0
+      europarl: 0
+      gutenberg: 0.1
+      uspto: 0.1
+#      github: 0.1
+    num_samples: 33037301
+    max_seq_len: 1024
+    tokenizer_name: gpt2
+    seed: 17
+    cycle: true
+    shuffle: true
+    shuffle_buffer_size: 50000
+val_dataset:
+  pubmed:
+    name: randomized
+    split: validation
+    num_samples: 63954
+    max_seq_len: 1024
+    tokenizer_name: gpt2
+    group_method: concat
+    seed: 17
+    shuffle: false
+    drop_last: false
+model:
+  gpt2:
+    use_pretrained: false
+    tokenizer_name: gpt2
+    model_config:
+      activation_function: gelu_new
+      architectures:
+        - GPT2LMHeadModel
+      attn_pdrop: 0.1
+      bos_token_id: 50256
+      embd_pdrop: 0.1
+      eos_token_id: 50256
+      initializer_range: 0.02
+      layer_norm_epsilon: 1.0e-05
+      model_type: gpt2
+      n_ctx: 1024
+      n_embd: 512
+      n_head: 8
+      # n_inner: 3072
+      n_inner: null # mistral change
+      n_layer: 8
+      n_positions: 1024
+      resid_pdrop: 0.1
+      scale_attn_weights: true
+      summary_activation: null
+      summary_first_dropout: 0.1
+      summary_proj_to_labels: true
+      summary_type: cls_index
+      summary_use_proj: true
+      task_specific_params:
+        text-generation:
+          do_sample: true
+          max_length: 50
+      transformers_version: 4.16.2
+      use_cache: true
+      vocab_size: 50257
+      # core mistral changes:
+      reorder_and_upcast_attn: true
+      scale_attn_by_inverse_layer_idx: true
+optimizer:
+  adamw:
+    lr: 1.0e-3
+    betas:
+      - 0.9
+      - 0.999
+    eps: 1.0e-08
+    weight_decay: 0.1
+schedulers:
+  - linear_decay_with_logarithmic_warmup:
+      t_warmup: 0.01dur
+max_duration: 100002ba
+train_batch_size: 512 # 0.5e6 tok ~= 256[bs] * 2048[msl]
+grad_accum: 2 # 512[bs] / 8[devices] / 8[per_gpu_microbatch_size] = 16[ga], assuming 8xA100-40GB
+eval_batch_size: 32 # 32[bs] / 8[devices] = 4[per_gpu_microbatch_size], assuming 8xA100-40GB
+seed: 17
+device:
+  gpu: {}
+dataloader:
+  pin_memory: true
+  persistent_workers: true
+  num_workers: 1
+  timeout: 0
+  prefetch_factor: 2
+deepspeed:
+  zero_optimization:
+    stage: 0
+precision: fp16
+grad_clip_norm: 1.0
+validate_every_n_batches: 1000
+validate_every_n_epochs: 1
+callbacks:
+  loss_scale_monitor: {}
+  grad_monitor:
+    log_layer_grad_norms: true
