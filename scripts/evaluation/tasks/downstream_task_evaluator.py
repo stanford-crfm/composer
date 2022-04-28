@@ -15,14 +15,15 @@ class DownstreamTaskEvaluator(ABC):
         run: Run,
         artifact: Artifact,
         step: int,
-        downstream_dir_path: str,
+        downstream_config: dict,
         checkpoint_path: str,
     ):
         self.run: Run = run
         self.artifact: Artifact = artifact
         self.step: int = step
         self.evaluator_state: EvaluatorState = evaluator_state
-        self.downstream_dir: str = downstream_dir_path
+        self.downstream_config: dict = downstream_config
+        self.downstream_dir: str = downstream_config["path"]
         self.original_work_dir: str = os.path.abspath(os.getcwd())
         self.checkpoint_path: str = os.path.abspath(checkpoint_path)
         self.results_dir: str = os.path.abspath(

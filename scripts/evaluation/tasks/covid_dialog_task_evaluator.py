@@ -12,11 +12,11 @@ class CovidDialogTaskEvaluator(DownstreamTaskEvaluator):
         run: Run,
         artifact: Artifact,
         step: int,
-        downstream_dir_path: str,
+        downstream_config: dict,
         checkpoint_path: str,
     ):
         super().__init__(
-            evaluator_state, run, artifact, step, downstream_dir_path, checkpoint_path
+            evaluator_state, run, artifact, step, downstream_config, checkpoint_path
         )
 
     @property

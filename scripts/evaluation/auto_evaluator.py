@@ -21,13 +21,7 @@ from scripts.evaluation.util import (
 from scripts.convert_deepspeed_to_hf_model import (
     convert_deepspeed_checkpoint_to_hf_model,
 )
-from scripts.evaluation.tasks.pubmed_qa_task_evaluator import PubMedQATaskEvaluator
-from scripts.evaluation.tasks.med_qa_task_evaluator import MedQATaskEvaluator
-from scripts.evaluation.tasks.ner_ebm_pico_task_evaluator import NEREBMPICOTaskEvaluator
-from scripts.evaluation.tasks.ner_bc5cdr_task_evaluator import NERBC5CDRTaskEvaluator
-from scripts.evaluation.tasks.covid_dialog_task_evaluator import CovidDialogTaskEvaluator
-from scripts.evaluation.tasks.medparasimp_task_evaluator import MedParaSimpTaskEvaluator
-from scripts.evaluation.tasks.meqsum_task_evaluator import MeQSumTaskEvaluator
+from scripts.evaluation.tasks import all_evaluators
 
 """
 Have a process that runs infinitely observing runs that belongs to a wandb entity using the wandb api. Whenever a new 
@@ -67,7 +61,7 @@ class AutoEvaluator:
 
             self.evaluation_frequency_steps: int = config["evaluationFrequencySteps"]
             self.check_frequency_seconds: int = config["checkFrequencySeconds"]
-            self.downstream_paths: Dict[str, str] = config["downstreamTaskPaths"]
+            self.downstream_configs: Dict[str, str] = config["downstreamTaskConfigs"]
             self.state = EvaluatorState(os.path.join(self.output_dir, "state.json"))
             hlog("Initialized the AutoEvaluator.")
 
@@ -108,46 +102,19 @@ class AutoEvaluator:
                                 checkpoint_path: str = self.prepare(
                                     run, artifact, hyperparameter_artifact=artifacts[0]
                                 )
-
                                 # Evaluate on downstream tasks
-                                PubMedQATaskEvaluator(
-                                    evaluator_state=self.state,
-                                    run=run,
-                                    artifact=artifact,
-                                    step=step,
-                                    downstream_dir_path=self.downstream_paths[
-                                        "pubMedQA"
-                                    ],
-                                    checkpoint_path=checkpoint_path,
-                                ).evaluate()
-                                MedQATaskEvaluator(
-                                    evaluator_state=self.state,
-                                    run=run,
-                                    artifact=artifact,
-                                    step=step,
-                                    downstream_dir_path=self.downstream_paths["medQA"],
-                                    checkpoint_path=checkpoint_path,
-                                ).evaluate()
-                                NEREBMPICOTaskEvaluator(
-                                    evaluator_state=self.state,
-                                    run=run,
-                                    artifact=artifact,
-                                    step=step,
-                                    downstream_dir_path=self.downstream_paths[
-                                        "nerBC5CDR"
-                                    ],
-                                    checkpoint_path=checkpoint_path,
-                                ).evaluate()
-                                NERBC5CDRTaskEvaluator(
-                                    evaluator_state=self.state,
-                                    run=run,
-                                    artifact=artifact,
-                                    step=step,
-                                    downstream_dir_path=self.downstream_paths[
-                                        "nerEBMPICO"
-                                    ],
-                                    checkpoint_path=checkpoint_path,
-                                ).evaluate()
+                                tasks_to_eval = [k.lower() for k in self.downstream_configs]
+                                for evaluatorClass in all_evaluators:
+                                    task_key = evaluatorClass.__name__[:-len("TaskEvaluator")].lower()
+                                    if task_key in tasks_to_eval:
+                                        evaluatorClass(
+                                            evaluator_state=self.state,
+                                            run=run,
+                                            artifact=artifact,
+                                            step=step,
+                                            downstream_config=self.downstream_configs[evaluatorClass.task_name],
+                                            checkpoint_path=checkpoint_path,
+                                        ).evaluate()
                             except Exception as e:
                                 # Catch exception and try again
                                 hlog(traceback.format_exc())

@@ -6,13 +6,14 @@ from .downstream_task_evaluator import DownstreamTaskEvaluator
 
 
 class MedParaSimpTaskEvaluator(DownstreamTaskEvaluator):
+
     def __init__(
         self,
         evaluator_state: EvaluatorState,
         run: Run,
         artifact: Artifact,
         step: int,
-        downstream_dir_path: str,
+        downstream_config: dict,
         checkpoint_path: str,
     ):
         super().__init__(
