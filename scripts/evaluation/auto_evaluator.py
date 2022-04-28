@@ -25,6 +25,9 @@ from scripts.evaluation.tasks.pubmed_qa_task_evaluator import PubMedQATaskEvalua
 from scripts.evaluation.tasks.med_qa_task_evaluator import MedQATaskEvaluator
 from scripts.evaluation.tasks.ner_ebm_pico_task_evaluator import NEREBMPICOTaskEvaluator
 from scripts.evaluation.tasks.ner_bc5cdr_task_evaluator import NERBC5CDRTaskEvaluator
+from scripts.evaluation.tasks.covid_dialog_task_evaluator import CovidDialogTaskEvaluator
+from scripts.evaluation.tasks.medparasimp_task_evaluator import MedParaSimpTaskEvaluator
+from scripts.evaluation.tasks.meqsum_task_evaluator import MeQSumTaskEvaluator
 
 """
 Have a process that runs infinitely observing runs that belongs to a wandb entity using the wandb api. Whenever a new 
