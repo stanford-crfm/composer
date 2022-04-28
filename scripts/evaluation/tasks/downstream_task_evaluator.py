@@ -22,14 +22,59 @@ class DownstreamTaskEvaluator(ABC):
         self.artifact: Artifact = artifact
         self.step: int = step
         self.evaluator_state: EvaluatorState = evaluator_state
-        self.downstream_config: dict = downstream_config
+        # generate all requested hparam settings for the task
+        self.hparams: dict = dict(downstream_config)
+        for k in ["environment", "path"]: self.hparams.pop(k, None)
+        self.sweep_configs: list = DownstreamTaskEvaluator.config_cartesian(self.hparams)
         self.downstream_dir: str = downstream_config["path"]
+        self.environment: str = downstream_config.get("environment", None)
         self.original_work_dir: str = os.path.abspath(os.getcwd())
         self.checkpoint_path: str = os.path.abspath(checkpoint_path)
         self.results_dir: str = os.path.abspath(
             os.path.join(self.checkpoint_path, "result", self.task_name)
         )
         os.makedirs(self.results_dir, exist_ok=True)
+
+    @staticmethod
+    def config_to_str(
+        config: dict,
+        delimiter: str = " ",
+        k_prefix: str = " ",
+        v_prefix: str = " ",
+        ignore_keys: list = [],
+    ) -> str:
+        """
+        Turn a config dict into a str. Add prefixes to keys and values, potentially ignore keys.
+        Example:
+            input: config = {"learning_rate": 0.01, "epochs": 20}
+                   delimiter=" ",
+                   k_prefix="--",
+                   v_prefix=" "
+            output: "--learning_rate 0.01 --epochs 20"
+        """
+        keys = sorted([k for k in config.keys() if k not in ignore_keys])
+        return delimiter.join([f"{k_prefix}{k}{v_prefix}{config[k]}" for k in keys])
+
+    @staticmethod
+    def config_cartesian(config):
+        """
+        Expand a config to a cartesian product of every key with list value.
+        Example: {"a": 0, "b": [1,2]} => [{"a": 0, "b": 1}, {"a": 0, "b": 2}]
+        """
+        if len(config) == 0:
+            return [{}]
+        else:
+            config_cp = dict(config)
+            head = list(config_cp.keys())[0]
+            config_cp.pop(head)
+            tails = cartesian(config_cp)
+            head_options = (
+                [config[head]] if not type(config[head]) == list else config[head]
+            )
+            return_list = [
+                {**{head: h}, **tail} for h in head_options for tail in tails
+            ]
+            return return_list
 
     @abstractmethod
     def task_name(self) -> str:
@@ -57,8 +102,12 @@ class DownstreamTaskEvaluator(ABC):
             os.chdir(self.downstream_dir)
 
             try:
-                hlog(self.command)
-                subprocess.check_call(self.command, shell=True)
+                for hparam_config in self.sweep_configs:
+                    hparam_cmd = self.command(config=sweep_config) 
+                    if self.environment:
+                        hparam_cmd = f"conda activate {self.environment} ; {hparam_cmd}"
+                    hlog(hparam_cmd)
+                    subprocess.check_call(hparam_cmd, shell=True)
             except subprocess.CalledProcessError as e:
                 hlog(
                     f"There was an error executing the downstream evaluation script: {e.output}"

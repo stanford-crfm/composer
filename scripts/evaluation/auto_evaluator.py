@@ -54,6 +54,9 @@ class AutoEvaluator:
                 project=wandb_config["project"],
                 entity=wandb_config["entity"],
             )
+            wandb_config["date"] = "1900-01-01" if "date" not in wandb_config
+            self.wandb_start: int = time.mktime(datetime.strptime(wandb_config["date"], "%Y-%m-%d").timetuple())
+            self.wandb_filters: list = wandb_config["prefix_filters"] 
 
             # Create the output directory if it doesn't exist already
             self.output_dir: str = config["outputDir"]
@@ -79,6 +82,12 @@ class AutoEvaluator:
             hlog(f"Found {len(runs)} runs...")
 
             for run in runs:
+                # check if run passes config filters
+                if "_timestamp" in run.summary run.summary["_timestamp"] < self.wandb_start:
+                    continue
+                prefix_match = True in [run.name.startswith(prefix) for prefix in self.wandb_filters]
+                if not prefix_match:
+                    continue
                 with htrack_block(f"Run: {run.name}"):
                     artifacts: RunArtifacts = run.logged_artifacts()
                     hlog(f"Found {len(artifacts)} artifacts...")
@@ -107,12 +116,13 @@ class AutoEvaluator:
                                 for evaluatorClass in all_evaluators:
                                     task_key = evaluatorClass.__name__[:-len("TaskEvaluator")].lower()
                                     if task_key in tasks_to_eval:
+                                        task_config = dict(self.downstream_configs[evaluatorClass.task_name])
                                         evaluatorClass(
                                             evaluator_state=self.state,
                                             run=run,
                                             artifact=artifact,
                                             step=step,
-                                            downstream_config=self.downstream_configs[evaluatorClass.task_name],
+                                            downstream_config=task_config,
                                             checkpoint_path=checkpoint_path,
                                         ).evaluate()
                             except Exception as e:
