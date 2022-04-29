@@ -105,7 +105,8 @@ class DownstreamTaskEvaluator(ABC):
                 for hparam_config in self.sweep_configs:
                     hparam_cmd = self.command(config=sweep_config) 
                     if self.environment:
-                        hparam_cmd = f"conda activate {self.environment} ; {hparam_cmd}"
+                        setup_env_cmd = ". /opt/conda/etc/profile.d/conda.sh ; conda activate {self.environment}"
+                        hparam_cmd = f"{setup_env_cmd} ; {hparam_cmd}"
                     hlog(hparam_cmd)
                     subprocess.check_call(hparam_cmd, shell=True)
             except subprocess.CalledProcessError as e:
