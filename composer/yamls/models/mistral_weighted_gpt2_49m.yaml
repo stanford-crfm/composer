@@ -148,7 +148,7 @@ optimizer:
     eps: 1.0e-08
     weight_decay: 0.1
 schedulers:
-  - linear_decay_with_logarithmic_warmup:
+  - linear_decay_with_warmup:
       t_warmup: 0.01dur
 max_duration: 100002ba
 train_batch_size: 512 # 0.5e6 tok ~= 256[bs] * 2048[msl]
