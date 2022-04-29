@@ -25,8 +25,7 @@ class MedParaSimpTaskEvaluator(DownstreamTaskEvaluator):
         # TODO: add hyperparameter values to the name
         return "MedParaSimp"
 
-    @property
-    def command(self) -> str:
+    def command(self, config=None) -> str:
         task_name: str = "medparasimp"
         uid: str = f"{self.run.name}-{self.artifact.name}"
         finetune_executable: str = "train_e2e.py"
