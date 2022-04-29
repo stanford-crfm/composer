@@ -205,7 +205,7 @@ class AutoEvaluator:
 
 def main():
     auto_evaluator = AutoEvaluator(args.config_path)
-    auto_evaluator.run_once()
+    auto_evaluator.run()
 
 
 if __name__ == "__main__":
