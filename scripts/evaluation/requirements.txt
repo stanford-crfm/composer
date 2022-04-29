@@ -8,3 +8,5 @@ transformers==4.9.1
 datasets==1.11.0
 sklearn
 seqeval
+sacrebleu==2.0.0
+rouge-score==0.0.4
