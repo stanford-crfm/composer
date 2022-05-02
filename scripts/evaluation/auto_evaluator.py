@@ -54,7 +54,7 @@ class AutoEvaluator:
                 project=wandb_config["project"],
                 entity=wandb_config["entity"],
             )
-            wandb_config["date"] = "1900-01-01" if "date" not in wandb_config
+            wandb_config["date"] = "1970-01-01" if "date" not in wandb_config
             self.wandb_start: int = time.mktime(datetime.strptime(wandb_config["date"], "%Y-%m-%d").timetuple())
             self.wandb_filters: list = wandb_config["prefix_filters"] 
 
@@ -83,8 +83,20 @@ class AutoEvaluator:
 
             for run in runs:
                 # check if run passes config filters
-                if "_timestamp" in run.summary run.summary["_timestamp"] < self.wandb_start:
+                # check timestamp of yaml creation
+                time_check = False
+                for artifact in run.logged_artifacts():
+                    if "yaml" in artifact.name:
+                        try:
+                            created_date = artifact.created_at.split("T")[0]
+                            created_date = time.mktime(datetime.strptime(created_date, "%Y-%m-%d").timetuple())
+                            if created_date > self.wandb_start:
+                                time_check = True
+                        except:
+                            pass
+                if not time_check:
                     continue
+                # check prefix match
                 prefix_match = True in [run.name.startswith(prefix) for prefix in self.wandb_filters]
                 if not prefix_match:
                     continue
