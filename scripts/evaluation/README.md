@@ -25,11 +25,26 @@ outputDir: <desired output path>
 evaluationFrequencySteps: 100000    # How often we evaluate checkpoints in terms of steps
 checkFrequencySeconds: 600  # Checks the runs in wandb every ten minutes
 
-downstreamTaskPaths:
-    pubMedQA: /path/to/evaluation/folder e.g. /mistral/downstream/seqcls
-    medQA: /path/to/evaluation/folder e.g. /mistral/downstream/mc
-    nerBC5CDR: /path/to/evaluation/folder e.g. /mistral/downstream/tokcls
-    nerEBMPICO: /path/to/evaluation/folder e.g. /mistral/downstream/tokcls
+downstreamTaskConfigs:
+    MedParaSimp:
+        path: /path/to/evaluation/folder # /home/user/mistral/downstream/textgen/gpt2
+        environment: biomedical-nlg-eval # conda env for task evaluation
+        hparams:   # hyper parameters for each executable of each task
+            mini:  # tag for model type (e.g. all, mini, xs, small, medium, XL) ... put all for any model
+                train_e2e.py:
+                    learning_rate: 1e-4
+                    bsz: 16
+                gen_batch.py:
+                    batch_size: 9
+                    length: 400
+    MedQA: 
+        path: /path/to/evaluation/folder # /home/user/mistral/downstream/seqcls
+        environment: biomedical-nlu-eval
+        hparams:
+            mini:
+                run_multiple_choice.py:
+                    learning_rate: [2e-5, 3e-5] # the cartesian product of all hparam settings will be evaluated
+                    warmup_ratio: [0.25, 0.5]
 ```
 
 Start the Auto Evaluator:
@@ -66,7 +81,7 @@ The following are the instructions on how to deploy the auto-evaluation pipeline
     evaluationFrequencySteps: 100000    # How often we evaluate checkpoints in terms of steps
     checkFrequencySeconds: 600  # Checks the runs in wandb every ten minutes
     
-    downstreamTaskPaths:
+    downstreamTaskConfigs:
         pubMedQA: /home/tonyhlee/mistral/downstream/seqcls
         medQA: /home/tonyhlee/mistral/downstream/mc
         nerBC5CDR: /home/tonyhlee/mistral/downstream/tokcls
