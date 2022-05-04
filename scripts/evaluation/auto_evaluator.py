@@ -51,12 +51,15 @@ class AutoEvaluator:
             wandb_config: Dict[str, str] = config["wandb"]
             self.wandb_api: wandb.Api = initialize_wandb(
                 api_key=wandb_config["apiKey"],
-                project=wandb_config["project"],
+                project=wandb_config["source_project"],
                 entity=wandb_config["entity"],
             )
-            wandb_config["date"] = "1970-01-01" if "date" not in wandb_config
-            self.wandb_start: int = time.mktime(datetime.strptime(wandb_config["date"], "%Y-%m-%d").timetuple())
-            self.wandb_filters: list = wandb_config["prefix_filters"] 
+            if "date" not in wandb_config:
+                wandb_config["date"] = "1970-01-01"
+            self.wandb_start: int = time.mktime(
+                datetime.strptime(wandb_config["date"], "%Y-%m-%d").timetuple()
+            )
+            self.wandb_filters: list = wandb_config["prefix_filters"]
 
             # Create the output directory if it doesn't exist already
             self.output_dir: str = config["outputDir"]
@@ -65,6 +68,13 @@ class AutoEvaluator:
             self.evaluation_frequency_steps: int = config["evaluationFrequencySteps"]
             self.check_frequency_seconds: int = config["checkFrequencySeconds"]
             self.downstream_configs: Dict[str, str] = config["downstreamTaskConfigs"]
+            # add wandb info for task evaluators
+            self.downstream_configs.update(
+                {
+                    "wandb_entity": wandb_config["entity"],
+                    "wandb_project": wandb_config["target_project"],
+                }
+            )
             self.state = EvaluatorState(os.path.join(self.output_dir, "state.json"))
             hlog("Initialized the AutoEvaluator.")
 
@@ -89,7 +99,9 @@ class AutoEvaluator:
                     if "yaml" in artifact.name:
                         try:
                             created_date = artifact.created_at.split("T")[0]
-                            created_date = time.mktime(datetime.strptime(created_date, "%Y-%m-%d").timetuple())
+                            created_date = time.mktime(
+                                datetime.strptime(created_date, "%Y-%m-%d").timetuple()
+                            )
                             if created_date > self.wandb_start:
                                 time_check = True
                         except:
@@ -97,7 +109,9 @@ class AutoEvaluator:
                 if not time_check:
                     continue
                 # check prefix match
-                prefix_match = True in [run.name.startswith(prefix) for prefix in self.wandb_filters]
+                prefix_match = True in [
+                    run.name.startswith(prefix) for prefix in self.wandb_filters
+                ]
                 if not prefix_match:
                     continue
                 with htrack_block(f"Run: {run.name}"):
@@ -124,11 +138,19 @@ class AutoEvaluator:
                                     run, artifact, hyperparameter_artifact=artifacts[0]
                                 )
                                 # Evaluate on downstream tasks
-                                tasks_to_eval = [k.lower() for k in self.downstream_configs]
+                                tasks_to_eval = [
+                                    k.lower() for k in self.downstream_configs
+                                ]
                                 for evaluatorClass in all_evaluators:
-                                    task_key = evaluatorClass.__name__[:-len("TaskEvaluator")].lower()
+                                    task_key = evaluatorClass.__name__[
+                                        : -len("TaskEvaluator")
+                                    ].lower()
                                     if task_key in tasks_to_eval:
-                                        task_config = dict(self.downstream_configs[evaluatorClass.task_name])
+                                        task_config = dict(
+                                            self.downstream_configs[
+                                                evaluatorClass.task_name
+                                            ]
+                                        )
                                         evaluatorClass(
                                             evaluator_state=self.state,
                                             run=run,
