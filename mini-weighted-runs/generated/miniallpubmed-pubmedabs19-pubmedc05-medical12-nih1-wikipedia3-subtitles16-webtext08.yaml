@@ -1,0 +1,64 @@
+algorithms: []
+command: 'git clone {{ git_repo }} $HOME/composer
+
+  cd $HOME/composer
+
+  echo ''Checking out composer branch {{ git_branch }}''
+
+  git checkout {{ git_branch }}
+
+  pip3 install braceexpand zstandard torch==1.11 torchvision torchaudio --extra-index-url
+  https://download.pytorch.org/whl/cu113
+
+  pip install --user -e .[all]
+
+  composer -n 8 examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name
+  {{ name }}
+
+  '
+git_branch: multinode_gpt2
+git_repo: https://github.com/stanford-crfm/composer
+image: mosaicml/pytorch
+instance: r6z1-g8-a100
+models: mistral_weighted_gpt2_11m
+name: miniallpubmed-pubmedabs19-pubmedc05-medical12-nih1
+parameters:
+  callbacks:
+  - lr_monitor: {}
+  - loss_scale_monitor: {}
+  - grad_monitor:
+      log_layer_grad_norms: true
+  - lr_monitor: {}
+  - speed_monitor:
+      window_size: 10
+  loggers:
+  - wandb:
+      entity: stanford-mercury
+      log_artifacts: true
+      project: mosaic-gpt2
+  save_artifact_name: '{run_name}/checkpoints/rank{rank}'
+  save_folder: /tmp/{run_name}
+  save_interval: 20000ba
+  save_num_checkpoints_to_keep: 1
+  seed: 1
+  train_dataset:
+    sprucfluo:
+      weights:
+        academic: 0.0
+        books: 0.0
+        enron: 0.0
+        europarl: 0.0
+        gutenberg: 0.0
+        hackernews: 0.0
+        law: 0.0
+        medical: 0.11893438264359035
+        nih: 0.10104726142571807
+        pubmedAbs: 0.19475505726709275
+        pubmedC: 0.046444563896505565
+        stack_exchange: 0.0
+        subtitles: 0.16028783633790802
+        ubuntu_irc: 0.0
+        uspto: 0.0
+        webtext: 0.08251003151438153
+        wikipedia: 0.2960208669148038
+project: mosaic-gpt2

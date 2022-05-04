@@ -73,7 +73,7 @@ class RandomSearchDataMixture:
             for data_source, weight in data_sources_to_weights.items():
                 data_sources_to_weights[data_source] = weight / total_weight
 
-            # Ensure sampled weights add up to 1
+            # Ensure sampled weights (rounded) adds up to 1.0
             total_weight: float = RandomSearchDataMixture.round_weight(
                 sum([weight for weight in data_sources_to_weights.values()])
             )
@@ -133,7 +133,7 @@ def main():
             "webtext",
         ],
     )
-    parser.add_argument("--num-configs", help="Number of configs to generate", type=int, default=10)
+    parser.add_argument("--num-configs", help="Number of configs to generate", type=int, default=20)
     args = parser.parse_args()
 
     RandomSearchDataMixture(
