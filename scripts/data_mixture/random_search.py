@@ -48,6 +48,11 @@ class RandomSearchDataMixture:
         return name.lower()
 
     def generate(self, num_configs: int):
+        # Write out to "1" "Y" to a text file which will be used to automatically answer the mcli prompt
+        yes_path: str = os.path.join(self.output_path, "yes.txt")
+        with open(yes_path, 'w') as f:
+            f.write("1\nY")
+
         run_commands: List[str] = []
 
         # Generate `num_configs` configs with varying weights
@@ -98,7 +103,7 @@ class RandomSearchDataMixture:
             config_path: str = os.path.join(self.output_path, f"{config_name}.yaml")
             with open(config_path, 'w') as f:
                 yaml.dump(new_config, f, default_flow_style=False)
-            run_commands.append(f"mcli sweep -f {config_path}")
+            run_commands.append(f"mcli sweep -f {config_path} < {yes_path}")
 
         print("Run:")
         for run_command in run_commands:

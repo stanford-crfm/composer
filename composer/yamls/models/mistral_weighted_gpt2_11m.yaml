@@ -4,65 +4,65 @@ train_dataset:
     datasets:
       pubmedAbs:
           urls:
-            - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
+            - "simplecache::https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
       pubmedC:
           urls:
-            - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
+            - "simplecache::https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
       medical:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/plain_medical_text_train.{1..128}-of-128.jsonl.gz"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/plain-medical-text-sharded/plain_medical_text_train.{1..128}-of-128.jsonl.gz"
 #      arxiv:
 #        urls:
       books: # books2, book3
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/books2/train-{00..29}.jsonl.zst"
-          - "https://storage.googleapis.com/pubmed-mosaic/books3/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/books2/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/books3/train-{00..29}.jsonl.zst"
       hackernews:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/hackernews/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/hackernews/train-{00..29}.jsonl.zst"
       nih:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/nih/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/nih/train-{00..29}.jsonl.zst"
       subtitles:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/opensubtitles/train-{00..29}.jsonl.zst"
-          - "https://storage.googleapis.com/pubmed-mosaic/youtube_subtitles/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/opensubtitles/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/youtube_subtitles/train-{00..29}.jsonl.zst"
       stack_exchange:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/stack_exchange/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/stack_exchange/train-{00..29}.jsonl.zst"
       ubuntu_irc:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/ubuntu_irc/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/ubuntu_irc/train-{00..29}.jsonl.zst"
       wikipedia:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/wiki_en/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/wiki_en/train-{00..29}.jsonl.zst"
       webtext:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/pile_cc/train-{00..29}.jsonl.zst"
-          - "https://storage.googleapis.com/pubmed-mosaic/owt2/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/pile_cc/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/owt2/train-{00..29}.jsonl.zst"
       academic:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/dm_math/train-{00..29}.jsonl.zst"
-          - "https://storage.googleapis.com/pubmed-mosaic/arxiv/train-{00..29}.jsonl.zst"
-          - "https://storage.googleapis.com/pubmed-mosaic/philpapers/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/dm_math/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/arxiv/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/philpapers/train-{00..29}.jsonl.zst"
       law:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/free_law/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/free_law/train-{00..29}.jsonl.zst"
       enron:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/enron/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/enron/train-{00..29}.jsonl.zst"
       europarl:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/europarl/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/europarl/train-{00..29}.jsonl.zst"
       gutenberg:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/pg_19/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/pg_19/train-{00..29}.jsonl.zst"
       uspto:
         urls:
-          - "https://storage.googleapis.com/pubmed-mosaic/uspto/train-{00..29}.jsonl.zst"
+          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/uspto/train-{00..29}.jsonl.zst"
 #      github:
 #        urls:
-#          - "https://storage.googleapis.com/pubmed-mosaic/github/train-{00..29}.jsonl.zst"
+#          - "simplecache::https://storage.googleapis.com/pubmed-mosaic/github/train-{00..29}.jsonl.zst"
     weights:
       pubmedAbs: 1
       pubmedC: 1
