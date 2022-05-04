@@ -20,6 +20,8 @@ wandb:
     apiKey: <your wandb API key>
     project: <your wandb project>
     entity: <your entity>
+    start_date: 2022-04-28 # only evaluate runs after this date
+    prefix_filters: ["mini-"] # only evaluate runs matching this prefix
 
 outputDir: <desired output path>
 evaluationFrequencySteps: 100000    # How often we evaluate checkpoints in terms of steps
