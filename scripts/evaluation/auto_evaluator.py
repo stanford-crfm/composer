@@ -59,7 +59,7 @@ class AutoEvaluator:
             self.wandb_start: int = time.mktime(
                 datetime.strptime(wandb_config["start_date"], "%Y-%m-%d").timetuple()
             )
-            self.wandb_filters: list = wandb_config["prefix_filters"]
+            self.wandb_filters: list = wandb_config.get("prefix_filters", [])
 
             # Create the output directory if it doesn't exist already
             self.output_dir: str = config["outputDir"]
@@ -112,6 +112,8 @@ class AutoEvaluator:
                 ]
                 if not time_check or not prefix_match:
                     continue
+                print(run.name)
+                continue
                 with htrack_block(f"Run: {run.name}"):
                     artifacts: RunArtifacts = run.logged_artifacts()
                     hlog(f"Found {len(artifacts)} artifacts...")
