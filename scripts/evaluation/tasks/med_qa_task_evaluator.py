@@ -6,6 +6,9 @@ from .downstream_task_evaluator import DownstreamTaskEvaluator
 
 
 class MedQATaskEvaluator(DownstreamTaskEvaluator):
+
+    task_base_name = "MedQA"
+
     def __init__(
         self,
         evaluator_state: EvaluatorState,

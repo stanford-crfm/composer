@@ -6,6 +6,9 @@ from .downstream_task_evaluator import DownstreamTaskEvaluator
 
 
 class NERBC5CDRTaskEvaluator(DownstreamTaskEvaluator):
+
+    task_base_name = "NER_BC5CDR"
+
     def __init__(
         self,
         evaluator_state: EvaluatorState,

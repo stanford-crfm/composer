@@ -6,6 +6,9 @@ from .downstream_task_evaluator import DownstreamTaskEvaluator
 
 
 class CovidDialogTaskEvaluator(DownstreamTaskEvaluator):
+
+    task_base_name = "CovidDialog"
+
     def __init__(
         self,
         evaluator_state: EvaluatorState,

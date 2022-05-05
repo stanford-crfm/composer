@@ -6,6 +6,9 @@ from .downstream_task_evaluator import DownstreamTaskEvaluator
 
 
 class NEREBMPICOTaskEvaluator(DownstreamTaskEvaluator):
+
+    task_base_name = "NER_EBM_PICO"
+ 
     def __init__(
         self,
         evaluator_state: EvaluatorState,

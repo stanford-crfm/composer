@@ -6,6 +6,9 @@ from .downstream_task_evaluator import DownstreamTaskEvaluator
 
 
 class MeQSumTaskEvaluator(DownstreamTaskEvaluator):
+
+    task_base_name = "MeQSum" 
+
     def __init__(
         self,
         evaluator_state: EvaluatorState,
