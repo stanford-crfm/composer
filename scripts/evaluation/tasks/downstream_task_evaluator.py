@@ -40,7 +40,6 @@ class DownstreamTaskEvaluator(ABC):
                 ] = DownstreamTaskEvaluator.config_cartesian(
                     self.hparams[model_tag][executable]
                 )
-        )
         self.downstream_dir: str = downstream_config["path"]
         self.environment: str = downstream_config.get("environment", None)
         self.original_work_dir: str = os.path.abspath(os.getcwd())
