@@ -54,12 +54,10 @@ class AutoEvaluator:
                 project=wandb_config["models_project"],
                 entity=wandb_config["entity"],
             )
-            if "date" not in wandb_config:
-                wandb_config["start_date"] = "1970-01-01"
-            self.wandb_start: int = time.mktime(
-                datetime.strptime(wandb_config["start_date"], "%Y-%m-%d").timetuple()
-            )
-            self.wandb_filters: list = wandb_config.get("prefix_filters", [])
+            if "start_date" not in wandb_config:
+                wandb_config["start_date"] = datetime(1970,1,1)
+            self.wandb_start: int = time.mktime(wandb_config["start_date"].timetuple())
+            self.wandb_filters: list = wandb_config.get("prefixes", [""])
 
             # Create the output directory if it doesn't exist already
             self.output_dir: str = config["outputDir"]
@@ -96,7 +94,7 @@ class AutoEvaluator:
                 # check timestamp of yaml creation
                 time_check = False
                 for artifact in run.logged_artifacts():
-                    if "yaml" in artifact.name:
+                    if artifact.type == "yaml":
                         try:
                             created_date = artifact.created_at.split("T")[0]
                             created_date = time.mktime(
@@ -112,14 +110,15 @@ class AutoEvaluator:
                 ]
                 if not time_check or not prefix_match:
                     continue
-                print(run.name)
-                continue
                 with htrack_block(f"Run: {run.name}"):
                     artifacts: RunArtifacts = run.logged_artifacts()
                     hlog(f"Found {len(artifacts)} artifacts...")
 
                     for artifact in artifacts:
-                        step: Optional[int] = extract_largest_number(artifact.name)
+                        if artifact.type == "yaml":
+                            continue
+                        artifact_file_name = list(artifact.manifest.to_manifest_json()["contents"].keys())[0]
+                        step: int = int(artifact_file_name.split("-")[1][2:])
                         # If it's a step we don't care about, then skip it
                         if (
                             not step
@@ -191,7 +190,10 @@ class AutoEvaluator:
             return checkpoint_dir_path
 
         os.makedirs(checkpoint_dir_path, exist_ok=True)
-        hyperparameter_artifact.download(root=run_dir_path)
+        yaml_path = hyperparameter_artifact.download(root=run_dir_path)
+        yaml_file_name = list(hyperparameter_artifact.manifest.to_manifest_json()["contents"].keys())[0]
+        os.rename(f"{yaml_path}/{yaml_file_name}", f"{yaml_path}/hparams.yaml")
+        assert os.path.exists(f"{yaml_path}/hparams.yaml")
 
         # Download the artifact from wandb
         artifact.download(root=checkpoint_dir_path)
