@@ -19,13 +19,13 @@ class MedParaSimpTaskEvaluator(DownstreamTaskEvaluator):
         checkpoint_path: str,
     ):
         super().__init__(
-            evaluator_state, run, artifact, step, downstream_dir_path, checkpoint_path
+            evaluator_state, run, artifact, step, downstream_config, checkpoint_path
         )
 
 
     def command(self, config=None) -> str:
         gen_task_name = "medparasimp"
-        uid: str = f"{self.run.name}-{self.artifact.name}"
+        uid: str = f"{self.run.name}-{self.artifact.name}-finetune"
         executables: list = ["train_e2e.py", "gen_batch.py"]
         defaults: dict = {
             "train_e2e.py": {
@@ -49,11 +49,11 @@ class MedParaSimpTaskEvaluator(DownstreamTaskEvaluator):
                 "use_prefixtuning": 0,
                 "eval_split": "test",
                 "base_model_name_or_path": self.checkpoint_path,
-                "load_checkpoint_path": os.path.join(f"runs_{gen_task_name}", uid),
+                "load_checkpoint_path": os.path.join(f"runs_{gen_task_name}", f"{uid}_uctd=no_o=1_o=1"),
                 "wandb_entity": self.downstream_config["wandb_entity"],
                 "wandb_project": self.downstream_config["wandb_project"],
-                "wandb_run_name": self.run_name(config)
+                "wandb_run_name": self.run_name(config["gen_batch.py"])
            }
         }
-        self.build_command(executables=executables,defaults=defaults,config=config)
+        return self.build_command(executables=executables,defaults=defaults,config=config)
         
