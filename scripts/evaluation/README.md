@@ -19,8 +19,8 @@ Create a YAML file:
 wandb:
     apiKey: <your wandb API key>
     entity: <your entity>
-    source_project: <project with models to eval>
-    target_project: <project to store eval runs>
+    models_project: <project with models to eval>
+    eval_project: <project to store eval runs>
     start_date: 2022-04-28 # only evaluate runs after this date
     prefix_filters: ["mini-"] # only evaluate runs matching this prefix
 
