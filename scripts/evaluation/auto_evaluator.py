@@ -51,13 +51,13 @@ class AutoEvaluator:
             wandb_config: Dict[str, str] = config["wandb"]
             self.wandb_api: wandb.Api = initialize_wandb(
                 api_key=wandb_config["apiKey"],
-                project=wandb_config["source_project"],
+                project=wandb_config["models_project"],
                 entity=wandb_config["entity"],
             )
             if "date" not in wandb_config:
-                wandb_config["date"] = "1970-01-01"
+                wandb_config["start_date"] = "1970-01-01"
             self.wandb_start: int = time.mktime(
-                datetime.strptime(wandb_config["date"], "%Y-%m-%d").timetuple()
+                datetime.strptime(wandb_config["start_date"], "%Y-%m-%d").timetuple()
             )
             self.wandb_filters: list = wandb_config["prefix_filters"]
 
@@ -72,7 +72,7 @@ class AutoEvaluator:
             self.downstream_configs.update(
                 {
                     "wandb_entity": wandb_config["entity"],
-                    "wandb_project": wandb_config["target_project"],
+                    "wandb_project": wandb_config["eval_project"],
                 }
             )
             self.state = EvaluatorState(os.path.join(self.output_dir, "state.json"))
@@ -106,13 +106,11 @@ class AutoEvaluator:
                                 time_check = True
                         except:
                             pass
-                if not time_check:
-                    continue
                 # check prefix match
                 prefix_match = True in [
                     run.name.startswith(prefix) for prefix in self.wandb_filters
                 ]
-                if not prefix_match:
+                if not time_check or not prefix_match:
                     continue
                 with htrack_block(f"Run: {run.name}"):
                     artifacts: RunArtifacts = run.logged_artifacts()
@@ -138,19 +136,24 @@ class AutoEvaluator:
                                     run, artifact, hyperparameter_artifact=artifacts[0]
                                 )
                                 # Evaluate on downstream tasks
-                                tasks_to_eval = [
-                                    k.lower() for k in self.downstream_configs
-                                ]
                                 for evaluatorClass in all_evaluators:
-                                    task_key = evaluatorClass.__name__[
-                                        : -len("TaskEvaluator")
-                                    ].lower()
-                                    if task_key in tasks_to_eval:
+                                    if (
+                                        evaluatorClass.task_base_name
+                                        in self.downstream_configs
+                                    ):
                                         task_config = dict(
                                             self.downstream_configs[
-                                                evaluatorClass.task_name
+                                                evaluatorClass.task_base_name
                                             ]
                                         )
+                                        wandb_info = dict(
+                                            [
+                                                (k, self.downstream_configs[k])
+                                                for k in self.downstream_configs
+                                                if k.startswith("wandb")
+                                            ]
+                                        )
+                                        task_config.update(wandb_info)
                                         evaluatorClass(
                                             evaluator_state=self.state,
                                             run=run,
