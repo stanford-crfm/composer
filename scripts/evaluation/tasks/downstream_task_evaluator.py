@@ -2,6 +2,7 @@ import itertools
 import os
 import subprocess
 from abc import ABC, abstractmethod
+from copy import deepcopy
 
 from wandb.apis.public import Run, Artifact
 
@@ -25,7 +26,7 @@ class DownstreamTaskEvaluator(ABC):
         self.evaluator_state: EvaluatorState = evaluator_state
         self.downstream_config = downstream_config
         # generate all requested hparam settings for the task
-        self.hparams: dict = dict(downstream_config["hparams"])
+        self.hparams: dict = deepcopy(downstream_config["hparams"])
         for k in ["environment", "path"]:
             self.hparams.pop(k, None)
         # task params are keyed with 2 attributes
@@ -79,7 +80,7 @@ class DownstreamTaskEvaluator(ABC):
         Expand a config to a cartesian product of every key with list value.
         Example: {"a": 0, "b": [1,2]} => [{"a": 0, "b": 1}, {"a": 0, "b": 2}]
         """
-        config_copy = dict(config)
+        config_copy = deepcopy(config)
         for k in config_copy:
             if type(config_copy[k]) != list:
                 config_copy[k] = [config_copy[k]]
@@ -105,7 +106,7 @@ class DownstreamTaskEvaluator(ABC):
         """
         sub_cmds = []
         for executable in executables:
-            executable_config = dict(defaults[executable])
+            executable_config = deepcopy(defaults[executable])
             executable_config.update(config[executable])
             sub_cmds.append(
                 f"python -u {executable} "
