@@ -175,5 +175,5 @@ class DownstreamTaskEvaluator(ABC):
     def wrap_up(self, config):
         os.chdir(self.original_work_dir)
         self.evaluator_state.mark_evaluated(
-            self.run.name, self.artifact.name, self.task_name
+            self.run.name, self.artifact.name, self.task_name(config)
         )
