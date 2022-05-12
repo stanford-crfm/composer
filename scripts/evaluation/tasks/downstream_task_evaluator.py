@@ -164,15 +164,15 @@ class DownstreamTaskEvaluator(ABC):
                             hparam_cmd = f"{setup_env_cmd} ; {hparam_cmd}"
                         hlog(hparam_cmd)
                         subprocess.check_call(hparam_cmd, shell=True)
+                        self.wrap_up(config=cmd_config)
             except subprocess.CalledProcessError as e:
                 hlog(
                     f"There was an error executing the downstream evaluation script: {e.output}"
                 )
                 raise
 
-            self.wrap_up()
 
-    def wrap_up(self):
+    def wrap_up(self, config):
         os.chdir(self.original_work_dir)
         self.evaluator_state.mark_evaluated(
             self.run.name, self.artifact.name, self.task_name
