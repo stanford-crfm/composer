@@ -47,6 +47,7 @@ class PubMedQATaskEvaluator(DownstreamTaskEvaluator):
                 "logging_steps": "100",
                 "save_strategy": "no",
                 "evaluation_strategy": "no",
+                "run_name": self.run_name(config["run_seqcls_gpt.py"]),
                 "output_dir": f"{self.results_dir}",
                 "overwrite_output_dir": ""
             }
