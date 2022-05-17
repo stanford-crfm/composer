@@ -23,38 +23,33 @@ class PubMedQATaskEvaluator(DownstreamTaskEvaluator):
         )
 
 
-    def task_name(self) -> str:
-        # TODO: add hyperparameter values to the name
-        return "PubMedQA"
-
     def command(self, config: dict={}) -> str:
-        executable: str = "run_seqcls_gpt.py"
+        qa_task_name = "pubmedqa_hf"
+        executables: list = ["run_seqcls_gpt.py"]
         data_dir: str = os.path.join("data", "pubmedqa_hf")
-        final_config: dict = {
-            "tokenizer_name": "gpt2",
-            "model_name_or_path": self.checkpoint_path,
-            "train_file": f"{data_dir}/train.json",
-            "validation_file": f"{data_dir}/dev.json",
-            "test_file": f"{data_dir}/test.json",
-            "do_train": "",
-            "do_eval": "",
-            "do_predict": "",
-            "fp16": "",
-            "per_device_train_batch_size": "16",
-            "gradient_accumulation_steps": "1",
-            "learning_rate": "2e-5",
-            "warmup_steps": "100",
-            "num_train_epochs": "30",
-            "max_seq_length": "512",
-            "logging_steps": "100",
-            "save_strategy": "no",
-            "evaluation_strategy": "no",
-            "run_name": f"{self.run_name}",
-            "output_dir": f"{self.results_dir}",
+        defaults: dict = {
+            "run_seqcls_gpt.py": {
+                "tokenizer_name": "gpt2",
+                "model_name_or_path": self.checkpoint_path,
+                "train_file": f"{data_dir}/train.json",
+                "validation_file": f"{data_dir}/dev.json",
+                "test_file": f"{data_dir}/test.json",
+                "do_train": "",
+                "do_eval": "",
+                "do_predict": "",
+                "fp16": "",
+                "per_device_train_batch_size": "16",
+                "gradient_accumulation_steps": "1",
+                "learning_rate": "2e-5",
+                "warmup_steps": "100",
+                "num_train_epochs": "30",
+                "max_seq_length": "512",
+                "logging_steps": "100",
+                "save_strategy": "no",
+                "evaluation_strategy": "no",
+                "output_dir": f"{self.results_dir}",
+                "overwrite_output_dir": ""
+            }
         }
-        final_config.update(config)
-        params_str: str = DownstreamTaskEvaluator.config_to_str(
-            final_config, delimiter=" ", k_prefix="--", v_prefix=" "
-        )
-        command: str = f"python3 {executable} {params_str}"
-        return command
+        return self.build_command(executables=executables,defaults=defaults,config=config)
+
