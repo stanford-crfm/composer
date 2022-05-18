@@ -38,7 +38,7 @@ class MedQATaskEvaluator(DownstreamTaskEvaluator):
                 "do_eval": "",
                 "do_predict": "",
                 "fp16": "",
-                "per_device_train_batch_size": "1",
+                "per_device_train_batch_size": "8",
                 "per_device_eval_batch_size": "1",
                 "gradient_accumulation_steps": "32",
                 "learning_rate": "3e-5",
