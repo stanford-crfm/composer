@@ -41,7 +41,7 @@ class MedParaSimpTaskEvaluator(DownstreamTaskEvaluator):
                 "warmup_steps": 1000
             },
             "gen_batch.py": {
-                "mode": "medparasimp",
+                "mode": gen_task_name,
                 "batch_size": 9,
                 "length": 400,
                 "no_repeat_ngram_size": 6,
