@@ -5,7 +5,7 @@ from scripts.evaluation.evaluator_state import EvaluatorState
 from .downstream_task_evaluator import DownstreamTaskEvaluator
 
 
-class PubMedQATaskEvaluator(DownstreamTaskEvaluator):
+class MedQATaskEvaluator(DownstreamTaskEvaluator):
 
     task_base_name = "MedQA"
 
