@@ -1,5 +1,5 @@
 image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
-run_name: mistral-gpt2-1-5b-nodes-4-05
+run_name: mistral-gpt2-1-5b-nodes-4-08
 #instance: r6z1-g8-a100
 platform: r6z1
 gpu_type: a100_40gb
@@ -15,7 +15,7 @@ integrations:
 command: |
   set -e -x
   cd composer
-  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name mistral-gpt2-1-5b-nodes-4-05
+  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name mistral-gpt2-1-5b-nodes-4-08
 parameters:
   train_dataset:
     sprucfluo:
@@ -36,11 +36,11 @@ parameters:
         datasets:
           pubmed:
               urls:
-                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_val.{1..8}-of-8.jsonl.gz"
-                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_val.{1..8}-of-8.jsonl.gz"
+                # make it be 3
+                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedRandomized_val.{1..8}-of-8.jsonl.gz"
         max_seq_len: 1024
         tokenizer_name: gpt2
-        num_samples: 63954
+        num_samples: 20000
         cycle: false
   model:
     gpt2:
@@ -91,14 +91,14 @@ parameters:
     lr_monitor: {}
     speed_monitor:
       window_size: 5
-  save_folder: "/tmp/mistral-gpt2-1-5b-nodes-4-05"
-  save_artifact_name:  "mistral-gpt2-1-5b-nodes-4-05/checkpoints/rank{rank}"
+  save_folder: "/tmp/mistral-gpt2-1-5b-nodes-4-08"
+  save_artifact_name:  "mistral-gpt2-1-5b-nodes-4-08/checkpoints/rank{rank}"
   save_interval: 20000ba
   save_num_checkpoints_to_keep: 1
   loggers:
     progress_bar: {}
     wandb:
       project: mosaic-gpt2
-      name: "mistral-gpt2-1-5b-nodes-4-05"
+      name: "mistral-gpt2-1-5b-nodes-4-08"
       rank_zero_only: true
       log_artifacts: true
