@@ -169,7 +169,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
             dataset = dataset.shuffle(buffer_size=self.shuffle_buffer_size)
 
         if self.num_samples:
-            dataset = _AssumeLenDataset(dataset, self.num_samples)
+            dataset = dataset.take(self.num_samples)#_AssumeLenDataset(dataset, self.num_samples)
 
         # Get collate_fn
         collate_fn = transformers.DataCollatorForLanguageModeling(

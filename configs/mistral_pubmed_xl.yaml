@@ -1,0 +1,104 @@
+image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
+run_name: mistral-gpt2-1-5b-nodes-4-05
+#instance: r6z1-g8-a100
+platform: r6z1
+gpu_type: a100_40gb
+gpu_num: 32
+#num_nodes: 4
+
+integrations:
+  - integration_type: git_repo
+    git_repo: stanford-crfm/composer
+    git_branch: pubmed
+    pip_install: '--user -e ".[all]"'
+
+command: |
+  set -e -x
+  cd composer
+  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name mistral-gpt2-1-5b-nodes-4-05
+parameters:
+  train_dataset:
+    sprucfluo:
+        datasets:
+          pubmed:
+              urls:
+                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
+                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
+        num_samples: 36708112
+        max_seq_len: 1024
+        tokenizer_name: gpt2
+        seed: 17
+        cycle: true
+        shuffle: true
+        shuffle_buffer_size: 50000
+  val_dataset:
+    sprucfluo:
+        datasets:
+          pubmed:
+              urls:
+                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_val.{1..8}-of-8.jsonl.gz"
+                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_val.{1..8}-of-8.jsonl.gz"
+        max_seq_len: 1024
+        tokenizer_name: gpt2
+        num_samples: 63954
+        cycle: false
+  model:
+    gpt2:
+      use_pretrained: false
+      tokenizer_name: gpt2
+      gradient_checkpointing: false
+      model_config:
+        n_embd: 1600
+        n_head: 25
+        n_layer: 48
+        n_positions: 1024
+        reorder_and_upcast_attn: true
+        scale_attn_by_inverse_layer_idx: true
+  optimizer:
+    decoupled_adamw:
+      lr: 2.0e-4
+      betas:
+        - 0.9
+        - 0.95
+      eps: 1.0e-08
+      weight_decay: 0.0
+  schedulers:
+    cosine_decay_with_warmup:
+      t_warmup: 0.01dur
+  max_duration: 1ep
+  train_batch_size: 512
+  grad_accum: 16
+  eval_batch_size: 128
+  seed: 17
+  device:
+    gpu: {}
+  dataloader:
+    pin_memory: true
+    persistent_workers: true
+    num_workers: 1
+    timeout: 0
+    prefetch_factor: 2
+  precision: fp16
+  deepspeed:
+    zero_optimization:
+      stage: 1
+  grad_clip_norm: 1.0
+  validate_every_n_batches: 1000
+  validate_every_n_epochs: 1
+
+  ### Logging ###
+  callbacks:
+    lr_monitor: {}
+    speed_monitor:
+      window_size: 5
+  save_folder: "/tmp/mistral-gpt2-1-5b-nodes-4-05"
+  save_artifact_name:  "mistral-gpt2-1-5b-nodes-4-05/checkpoints/rank{rank}"
+  save_interval: 20000ba
+  save_num_checkpoints_to_keep: 1
+  loggers:
+    progress_bar: {}
+    wandb:
+      project: mosaic-gpt2
+      name: "mistral-gpt2-1-5b-nodes-4-05"
+      rank_zero_only: true
+      log_artifacts: true
