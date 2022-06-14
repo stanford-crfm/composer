@@ -1,5 +1,5 @@
 image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
-run_name: mistral-gpt2-1-5b-nodes-4-warmup-01
+run_name: clean-gpt2-1-5b-nodes-4-warmup-01
 #instance: r6z1-g8-a100
 platform: r6z1
 gpu_type: a100_40gb
@@ -24,8 +24,10 @@ parameters:
         datasets:
           pubmed:
               urls:
-                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
-                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
+                - "https://storage.googleapis.com/pubmed-mosaic/pubmed_clean/pubmedRandomizedClean_train.{1..128}-of-128.jsonl.zst"
+#                - gs://pubmed-mosaic/pubmed_clean
+#                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedAbs_train.{1..128}-of-128.jsonl.gz"
+#                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedC_train.{1..128}-of-128.jsonl.gz"
         num_samples: 36708112
         max_seq_len: 1024
         tokenizer_name: gpt2
