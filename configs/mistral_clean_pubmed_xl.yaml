@@ -94,7 +94,8 @@ parameters:
   callbacks:
     lr_monitor: {}
     speed_monitor:
-      window_size: 5
+      window_size:
+    loss_scale_monitor: {}
   save_folder: "/tmp/mistral-gpt2-1-5b-nodes-4-warmup-01"
   save_artifact_name:  "mistral-gpt2-1-5b-nodes-4-warmup-01/checkpoints/rank{rank}"
   save_interval: 20000ba
