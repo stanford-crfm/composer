@@ -1,5 +1,5 @@
 image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
-run_name: clean-gpt2-1-5b-nodes-4-warmup-01
+run_name: clean-gpt2-1-5b-nodes-4-01
 #instance: r6z1-g8-a100
 platform: r6z1
 gpu_type: a100_40gb
@@ -15,10 +15,8 @@ integrations:
 command: |
   set -e -x
   cd composer
-  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name mistral-gpt2-1-5b-nodes-4-warmup-01
+  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name clean-mistral-gpt2-1-5b-nodes-4
 parameters:
-  algorithms:
-     - "seq_length_warmup": {}
   train_dataset:
     sprucfluo:
         datasets:
@@ -94,16 +92,18 @@ parameters:
   callbacks:
     lr_monitor: {}
     speed_monitor:
-      window_size:
+      window_size: 5
     loss_scale_monitor: {}
-  save_folder: "/tmp/mistral-gpt2-1-5b-nodes-4-warmup-01"
-  save_artifact_name:  "mistral-gpt2-1-5b-nodes-4-warmup-01/checkpoints/rank{rank}"
+    grad_monitor:
+      log_layer_grad_norms: True
+  save_folder: "/tmp/mistral-gpt2-1-5b-nodes-4-01"
+  save_artifact_name:  "mistral-gpt2-1-5b-nodes-4-01/checkpoints/rank{rank}"
   save_interval: 20000ba
   save_num_checkpoints_to_keep: 1
   loggers:
     progress_bar: {}
     wandb:
       project: mosaic-gpt2
-      name: "mistral-gpt2-1-5b-nodes-4-warmup-01"
+      name: "clean-gpt2-1-5b-nodes-4-01"
       rank_zero_only: true
       log_artifacts: true
