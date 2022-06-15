@@ -100,6 +100,7 @@ from composer.trainer.devices import Device, DeviceCPU, DeviceGPU
 from composer.utils import dist, ensure_tuple, map_collection, module_surgery, reproducibility
 from composer.utils.checkpoint import load_checkpoint, save_checkpoint
 from composer.utils.import_helpers import MissingConditionalImportError
+from composer.utils.nan_detector import NanDetector
 from composer.utils.object_store import ObjectStore
 
 log = logging.getLogger(__name__)
@@ -1282,12 +1283,38 @@ class Trainer:
                 for optimizer in ensure_tuple(self.state.optimizers):
                     self.state.scaler.unscale_(optimizer)
 
-            # clip gradients if the magnitude is too large
-            if not self.deepspeed_enabled and self._grad_clip_norm is not None:
-                torch.nn.utils.clip_grad_norm_(
+            # compute grad norm and clip gradients if the magnitude is too large
+            if not self.deepspeed_enabled:
+                grad_norm = torch.nn.utils.clip_grad_norm_(
                     parameters=self.state.model.parameters(),
-                    max_norm=self._grad_clip_norm,
+                    max_norm=self._grad_clip_norm or 1E9,
                 )
+            else:
+                import deepspeed.runtime.utils
+                grad_norm = deepspeed.runtime.utils.get_grad_norm(
+                    parameters=self.state.model.parameters,
+                )
+
+            if not torch.isfinite(grad_norm).all():
+            # TODO: this is gross
+                # check local gradnorm single GPU case, trigger NanDetector
+                with NanDetector(self.state.model):
+                    if not self.deepspeed_enabled:
+                        for optimizer in self.state.optimizers:
+                            optimizer.zero_grad()
+                    else:
+                        ds_mod = self.state.deepspeed_model
+                        if ds_mod.bfloat16_enabled() or ds_mod.zero_optimization() or ds_mod.fp16_enabled() or ds_mod.amp_enabled():
+                            # TODO: Temporary until bf16_optimizer and zero_optimizer are integrated
+                            ds_mod.optimizer.zero_grad()
+                        else:
+                            ds_mod.zero_grad()
+                    # rerun microbatch and look for nans
+                    for microbatch_idx, self.state.batch in enumerate(microbatches):
+                        is_final_microbatch = microbatch_idx + 1 == len(microbatches)
+                        self._train_microbatch(use_grad_scaling, current_batch_size, total_loss, is_final_microbatch)
+
+                    raise FloatingPointError("gradients are Nan/Inf")
 
             self.engine.run_event(Event.AFTER_TRAIN_BATCH)
 
