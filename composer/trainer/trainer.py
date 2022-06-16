@@ -1308,6 +1308,7 @@ class Trainer:
                 UserWarning(
                     (f"Bad gradient norm detected. Grad Norm: {grad_norm} This will turn on anomaly detection.")))
 
+
             with NanDetector(self.state.model):
                 if not self.deepspeed_enabled:
                     for optimizer in self.state.optimizers:
