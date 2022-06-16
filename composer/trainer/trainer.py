@@ -1284,15 +1284,10 @@ class Trainer:
                     self.state.scaler.unscale_(optimizer)
 
             # compute grad norm and clip gradients if the magnitude is too large
-            if not self.deepspeed_enabled:
-                grad_norm = torch.nn.utils.clip_grad_norm_(
+            if not self.deepspeed_enabled and self._grad_clip_norm:
+                torch.nn.utils.clip_grad_norm_(
                     parameters=self.state.model.parameters(),
                     max_norm=self._grad_clip_norm or 1E9,
-                )
-            else:
-                import deepspeed.runtime.utils
-                grad_norm = deepspeed.runtime.utils.get_grad_norm(
-                    parameters=self.state.model.parameters(),
                 )
 
             self.engine.run_event(Event.AFTER_TRAIN_BATCH)
@@ -1309,6 +1304,9 @@ class Trainer:
         if grad_norm < 0:
             # TODO: this is gross
             # check local gradnorm single GPU case, trigger NanDetector
+            warnings.warn(
+                UserWarning(
+                    (f"Bad gradient norm detected. Grad Norm: {grad_norm} This will turn on anomaly detection.")))
 
             with NanDetector(self.state.model):
                 if not self.deepspeed_enabled:
@@ -1400,9 +1398,6 @@ class Trainer:
 
             self.engine.run_event(Event.AFTER_BACKWARD)
 
-        params = list(t for t in self.state.model.parameters() if t.grad is not None)
-        if params:
-            params[0].grad[0] = float('inf')
         self._check_grad_norms()
 
         if self.deepspeed_enabled:
