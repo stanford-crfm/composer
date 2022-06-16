@@ -70,7 +70,13 @@ class NanDetector:
                 elif torch.isinf(tensor).any():
                     err = "Inf"
         if err is not None:
-            err = f"{err} detected in output of {name}, shape: {tensor.shape}, {'backward' if backward else 'forward'}"
+            # from anomaly detection
+            try:
+                forward_tb = tensor.grad_fn.metadata["traceback_"]
+                forward_tb = f"\nOffending forward call:\n" + "\n".join(forward_tb)
+            except:
+                forward_tb = ""
+            err = f"{err} detected in output of {name}, shape: {tensor.shape}, {'backward' if backward else 'forward'}{forward_tb}"
         return err
 
     def _apply(self, module, inp, x, backward):

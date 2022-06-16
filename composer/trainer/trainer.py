@@ -1295,30 +1295,45 @@ class Trainer:
                     parameters=self.state.model.parameters(),
                 )
 
-            if not torch.isfinite(torch.Tensor([grad_norm])).all():
-            # TODO: this is gross
-                # check local gradnorm single GPU case, trigger NanDetector
-                with NanDetector(self.state.model):
-                    if not self.deepspeed_enabled:
-                        for optimizer in self.state.optimizers:
-                            optimizer.zero_grad()
-                    else:
-                        ds_mod = self.state.deepspeed_model
-                        if ds_mod.bfloat16_enabled() or ds_mod.zero_optimization() or ds_mod.fp16_enabled() or ds_mod.amp_enabled():
-                            # TODO: Temporary until bf16_optimizer and zero_optimizer are integrated
-                            ds_mod.optimizer.zero_grad()
-                        else:
-                            ds_mod.zero_grad()
-                    # rerun microbatch and look for nans
-                    for microbatch_idx, self.state.batch in enumerate(microbatches):
-                        is_final_microbatch = microbatch_idx + 1 == len(microbatches)
-                        self._train_microbatch(use_grad_scaling, current_batch_size, total_loss, is_final_microbatch)
-
-                    raise FloatingPointError("gradients are Nan/Inf")
-
             self.engine.run_event(Event.AFTER_TRAIN_BATCH)
 
             return total_loss
+
+    def _check_grad_norms(self):
+        import deepspeed
+        grad_norm = deepspeed.runtime.utils.get_grad_norm(
+            parameters=self.state.model.parameters(),
+        )
+
+        # deepspeed uses -1 for some absurd reason
+        if grad_norm < 0:
+            # TODO: this is gross
+            # check local gradnorm single GPU case, trigger NanDetector
+
+            with NanDetector(self.state.model):
+                if not self.deepspeed_enabled:
+                    for optimizer in self.state.optimizers:
+                        optimizer.zero_grad()
+                else:
+                    ds_mod = self.state.deepspeed_model
+                    if ds_mod.bfloat16_enabled() or ds_mod.zero_optimization() or ds_mod.fp16_enabled() or ds_mod.amp_enabled():
+                        # TODO: Temporary until bf16_optimizer and zero_optimizer are integrated
+                        ds_mod.optimizer.zero_grad()
+                    else:
+                        ds_mod.zero_grad()
+                # rerun microbatch and look for nans
+                with self.state.precision_context:
+                    with torch.autograd.detect_anomaly():
+                        self.state.outputs = self.state.model(self.state.batch)
+                        self.state.loss = self._original_model.loss(self.state.outputs, self.state.batch)
+                    if self.deepspeed_enabled:
+                        self.state.deepspeed_model.backward(self.state.loss)
+                    else:
+                        for loss in ensure_tuple(self.state.loss):
+                            loss.backward(create_graph=self._backwards_create_graph)
+
+                # raise FloatingPointError("gradients are Nan/Inf")
+
 
     def _train_microbatch(self, use_grad_scaling: bool, current_batch_size: int, total_loss: torch.Tensor,
                           is_final_microbatch: bool):
@@ -1384,6 +1399,11 @@ class Trainer:
                     loss.backward(create_graph=self._backwards_create_graph)
 
             self.engine.run_event(Event.AFTER_BACKWARD)
+
+        params = list(t for t in self.state.model.parameters() if t.grad is not None)
+        if params:
+            params[0].grad[0] = float('inf')
+        self._check_grad_norms()
 
         if self.deepspeed_enabled:
             self.state.deepspeed_model.step()
