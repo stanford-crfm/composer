@@ -58,7 +58,7 @@ parameters:
         scale_attn_by_inverse_layer_idx: true
   optimizer:
     decoupled_adamw:
-      lr: 2.0e-4
+      lr: 1.0e-4
       betas:
         - 0.9
         - 0.95
