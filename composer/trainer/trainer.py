@@ -1292,10 +1292,10 @@ class Trainer:
             else:
                 import deepspeed.runtime.utils
                 grad_norm = deepspeed.runtime.utils.get_grad_norm(
-                    parameters=self.state.model.parameters,
+                    parameters=self.state.model.parameters(),
                 )
 
-            if not torch.isfinite(grad_norm).all():
+            if not torch.isfinite(torch.Tensor([grad_norm])).all():
             # TODO: this is gross
                 # check local gradnorm single GPU case, trigger NanDetector
                 with NanDetector(self.state.model):
