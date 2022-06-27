@@ -44,10 +44,16 @@ def extract_hf_config_from_yaml(yaml_path: str):
     with open(yaml_path, "r") as f:
         config = yaml.safe_load(f)
 
+    # new style configs
+    if "model" not in config:
+        config = config["parameters"]
+
     assert len(config["model"]) == 1
     model_name, model_config = next(iter(config["model"].items()))
     model_config = model_config["model_config"]
-    return model_name, AutoConfig.for_model(**model_config)
+
+    # TODO: this model name stuff isn't right. it assumes the model_name is the same in HF as in composer, but whatever
+    return model_name, AutoConfig.for_model(model_type=model_name, **model_config)
 
 
 def create_hf_model(config, torch_state_dict):
@@ -60,7 +66,7 @@ def create_hf_model(config, torch_state_dict):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-checkpoint", help="Path to DeepSpeed checkpoint")
-    parser.add_argument("--wandb-id", help="Artifact url")
+    parser.add_argument("--wandb-id", help="Artifact url", required=False)
     parser.add_argument("--config", help="Path to Composer yaml config")
     parser.add_argument(
         "--output-dir", help="Output directory for the HF Model", default="model"
