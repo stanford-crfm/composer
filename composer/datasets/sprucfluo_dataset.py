@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import functools
 
 import torch.utils.data.dataset
+from torch.utils.data.dataset import IterDataPipe
 import yahp as hp
 from torch.utils.data.datapipes.iter.combining import MultiplexerIterDataPipe
 
@@ -156,6 +157,7 @@ class SprucfluoDatasetHparams(DatasetHparams):
 
         datasets = {k: dataset.then(tokenize) for k, dataset in datasets.items()}
 
+        dataset: IterDataPipe
         if len(datasets) == 1:
             dataset = next(iter(datasets.values()))
         else:

@@ -25,33 +25,33 @@ class SliceIterDataPipe(IterDataPipe[T_co]):
                  stride: Optional[int] = None) -> None:
         self.iterable = iterable
         if stop is None and stride is None:
-            self.slice = slice(start_or_stop)
+            self._slice = slice(start_or_stop)
         else:
-            self.slice = slice(start_or_stop, stop, stride)
+            self._slice = slice(start_or_stop, stop, stride)
 
     def __iter__(self) -> Iterator[T_co]:
-        if self.slice.stop is not None and self.slice.stop < 0:
+        if self._slice.stop is not None and self._slice.stop < 0:
             stop = self._computed_base_len()
         else:
-            stop = self.slice.stop
-        return islice(self.iterable, self.slice.start, stop, self.slice.step)
+            stop = self._slice.stop
+        return islice(self.iterable, self._slice.start, stop, self._slice.step)
 
     def _computed_base_len(self) -> Optional[int]:
-        base_len = self.slice.stop
+        base_len = self._slice.stop
         if base_len is None or base_len < 0:
             if not isinstance(self.iterable, Sized):
-                raise None
+                raise ValueError('Cannot compute length of unsized iterable')
 
             base_len = len(self.iterable)
-            if self.slice.stop is not None:
-                base_len = base_len + self.slice.stop
+            if self._slice.stop is not None:
+                base_len = base_len + self._slice.stop
 
         return base_len
 
     def __len__(self) -> int:
         stop = self._computed_base_len()
-        step = self.slice.step or 1
-        start = self.slice.start or 0
+        step = self._slice.step or 1
+        start = self._slice.start or 0
         return (stop - start + (step - 1)) // step
 
 
