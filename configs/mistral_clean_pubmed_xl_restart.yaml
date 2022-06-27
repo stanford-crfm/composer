@@ -61,7 +61,7 @@ parameters:
         scale_attn_by_inverse_layer_idx: true
   optimizer:
     decoupled_adamw:
-      lr: 1.0e-4
+      lr: 6.635e-5 # roughly 1e-4 * (1 + math.cos(time * math.pi)) / 2
       betas:
         - 0.9
         - 0.95
