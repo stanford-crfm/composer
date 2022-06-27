@@ -1399,7 +1399,8 @@ class Trainer:
 
             self.engine.run_event(Event.AFTER_BACKWARD)
 
-        self._check_grad_norms()
+        # TODO: factor out to callback
+        # self._check_grad_norms()
 
         if self.deepspeed_enabled:
             self.state.deepspeed_model.step()
