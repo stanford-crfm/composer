@@ -85,7 +85,7 @@ parameters:
     num_workers: 1
     timeout: 0
     prefetch_factor: 2
-  precision: fp16
+  precision: bf16
   deepspeed:
     zero_optimization:
       stage: 1
