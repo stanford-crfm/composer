@@ -1,5 +1,5 @@
 image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
-run_name: clean-gpt2-1-5b-nodes-4-03
+run_name: clean-gpt2-1-5b-bf16-02
 #instance: r6z1-g8-a100
 platform: r6z1
 gpu_type: a100_40gb
@@ -15,7 +15,7 @@ integrations:
 command: |
   set -e -x
   cd composer
-  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name clean-mistral-gpt2-1-5b-nodes-4
+  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name clean-mistral-gpt2-1-5b-bf16-02
 parameters:
   train_dataset:
     sprucfluo:
@@ -110,6 +110,6 @@ parameters:
     progress_bar: {}
     wandb:
       project: mosaic-gpt2
-      name: "clean-gpt2-1-5b-nodes-4-03"
+      name: "clean-gpt2-1-5b-bf16-02"
       rank_zero_only: true
       log_artifacts: true
