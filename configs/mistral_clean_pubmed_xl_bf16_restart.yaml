@@ -33,18 +33,18 @@ parameters:
         cycle: true
         shuffle: true
         shuffle_buffer_size: 50000
-#  val_dataset:
-#    sprucfluo:
-#        datasets:
-#          pubmed:
-#              urls:
-#                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedRandomized_val.{1..8}-of-8.jsonl.gz"
-#        max_seq_len: 1024
-#        tokenizer_name: gpt2
-#        num_samples: 5000
-#        shuffle: false
-#        cycle: false
-#        is_train: false
+  val_dataset:
+    sprucfluo:
+        datasets:
+          pubmed:
+              urls:
+                - "https://storage.googleapis.com/pubmed-mosaic/pubmed-sharded/pubmedRandomized_val.{1..8}-of-8.jsonl.gz"
+        max_seq_len: 1024
+        tokenizer_name: gpt2
+        num_samples: 5000
+        shuffle: false
+        cycle: false
+        is_train: false
   model:
     gpt2:
       use_pretrained: true
