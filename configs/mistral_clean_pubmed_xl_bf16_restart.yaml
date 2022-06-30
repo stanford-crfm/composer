@@ -53,8 +53,9 @@ parameters:
         # pretrained_model_name: stanford-crfm/alias-gpt2-small-x21
         # pretrained_revision: checkpoint-400000
       tokenizer_name: gpt2
-      gradient_checkpointing: false
+      gradient_checkpointing: true
       model_config:
+        use_cache: false
         n_embd: 1600
         n_head: 25
         n_layer: 48
