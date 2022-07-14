@@ -1,0 +1,10 @@
+stanford-mercury/mosaic-gpt2/rank_0-checkpoints-ep7-ba250000-rank0.tar:v0,composer-pubmed-250k
+stanford-mercury/mosaic-gpt2/rank_0-checkpoints-ep6-ba225000-rank0.tar:v0,composer-pubmed-225k
+stanford-mercury/mosaic-gpt2/rank_0-checkpoints-ep5-ba208000-rank0.tar:v0,composer-pubmed-208k
+stanford-mercury/mosaic-gpt2/gpt2-125m-pubmed-openweb-nodes-4-take-6.checkpoints.rank0.tar:v399,composer-pubmed-openweb-400k
+stanford-mercury/mosaic-gpt2/gpt2-125m-pubmed-openweb-nodes-4-take-6.checkpoints.rank0.tar:v349,composer-pubmed-openweb-350k
+stanford-mercury/mosaic-gpt2/gpt2-125m-pubmed-openweb-nodes-4-take-6.checkpoints.rank0.tar:v301,composer-pubmed-openweb-302k
+stanford-mercury/mosaic-gpt2/gpt2-125m-pubmed-openweb-nodes-4-take-6.checkpoints.rank0.tar:v249,composer-pubmed-openweb-250k
+stanford-mercury/mosaic-gpt2/gpt2-125m-pubmed-openweb-nodes-4-take-6.checkpoints.rank0.tar:v199,composer-pubmed-openweb-200k
+stanford-mercury/mosaic-gpt2/gpt2-125m-pubmed-openweb-nodes-4-take-6.checkpoints.rank0.tar:v149,composer-pubmed-openweb-150k
+stanford-mercury/mosaic-gpt2/gpt2-125m-pubmed-openweb-nodes-4-take-6.checkpoints.rank0.tar:v99,composer-pubmed-openweb-100k
