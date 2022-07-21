@@ -53,6 +53,7 @@ def extract_hf_config_from_yaml(yaml_path: str):
     model_config = model_config["model_config"]
 
     # TODO: this model name stuff isn't right. it assumes the model_name is the same in HF as in composer, but whatever
+    model_config.pop("model_type", None)
     return model_name, AutoConfig.for_model(model_type=model_name, **model_config)
 
 
