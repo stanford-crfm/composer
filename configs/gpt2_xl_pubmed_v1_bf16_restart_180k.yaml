@@ -61,7 +61,7 @@ parameters:
         scale_attn_by_inverse_layer_idx: true
   optimizer:
     decoupled_adamw:
-      lr: 2.0e-4
+      lr: .0001976
       betas:
         - 0.9
         - 0.95
@@ -69,7 +69,7 @@ parameters:
       weight_decay: 0.0
   schedulers:
     cosine_decay_with_warmup:
-      t_warmup: 500ba
+      t_warmup: 2000ba
   max_duration: 340500ba # we made it 160k through, plus the (short) warmup
   train_batch_size: 512
   grad_accum: 16
