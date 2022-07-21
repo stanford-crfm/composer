@@ -1,0 +1,12 @@
+model:
+  gpt2:
+    use_pretrained: false
+    tokenizer_name: gpt2
+    gradient_checkpointing: false
+    model_config:
+      n_embd: 1600
+      n_head: 25
+      n_layer: 48
+      n_positions: 1024
+      reorder_and_upcast_attn: true
+      scale_attn_by_inverse_layer_idx: true
