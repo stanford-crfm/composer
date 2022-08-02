@@ -14,7 +14,7 @@ integrations:
 command: |
   set -e -x
   cd composer
-  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name clean-mistral-gpt2-1-5b-bf16-02
+  composer -n 8 examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name gpt2_xl_pubmed_clean_bf16_restart_from_260k_v1
 parameters:
   train_dataset:
     sprucfluo:
@@ -47,7 +47,7 @@ parameters:
       pretrained_model_name: stanford-crfm/pubmed_gpt
       pretrained_revision: pubmed_clean_gpt_xl_260k
       tokenizer_name: gpt2
-      gradient_checkpointing: false
+      gradient_checkpointing: true
       model_config:
         use_cache: false
         n_embd: 1600
@@ -81,6 +81,9 @@ parameters:
     timeout: 0
     prefetch_factor: 2
   precision: bf16
+  deepspeed:
+    zero_optimization:
+      stage: 1
   grad_clip_norm: 1.0
   validate_every_n_batches: 1000
   validate_every_n_epochs: 1
