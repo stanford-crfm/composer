@@ -16,7 +16,7 @@ integrations:
 command: |
   set -e -x
   cd composer
-  composer examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name gpt2_xl_pubmed_v1_bf16_restart_180k
+  composer -n 8 examples/run_composer_trainer.py -f /mnt/config/parameters.yaml --run_name gpt2_xl_pubmed_v1_bf16_restart_180k
 parameters:
   train_dataset:
     sprucfluo:
@@ -69,8 +69,8 @@ parameters:
       weight_decay: 0.0
   schedulers:
     cosine_decay_with_warmup:
-      t_warmup: 2000ba
-  max_duration: 340500ba # we made it 160k through, plus the (short) warmup
+      t_warmup: 500ba
+  max_duration: 944500ba # we made it 160k through, plus the (short) warmup
   train_batch_size: 512
   grad_accum: 16
   eval_batch_size: 128
