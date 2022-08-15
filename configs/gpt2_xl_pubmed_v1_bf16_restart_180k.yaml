@@ -1,7 +1,7 @@
 image: davhall/codalab-composer:latest # #mosaicml/pytorch  # Name of the docker image to use
 run_name: gpt2_xl_pubmed_v1_bf16_restart_180k
 #instance: r6z1-g8-a100
-platform: r6z1
+platform: r7z1
 gpu_type: a100_40gb
 gpu_num: 32
 #num_nodes: 4
